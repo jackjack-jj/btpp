@@ -1,6 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
   <app appid='fpjmgnodlbpbdfmehnbnmacajbllkfai'>
+<<<<<<< HEAD
     <updatecheck codebase='https://jackjack.alwaysdata.net/btoplusone/btpp/btpp_0.1.26.crx' version='0.1.26' />
+=======
+    <updatecheck codebase='https://jackjack.alwaysdata.net/btoplusone/btpp/btpp_0.1.23.crx' version='0.1.23' />
+>>>>>>> 97871154fbdb941417ecb74fc03cb998ad42b8bb
   </app>
 </gupdate>
