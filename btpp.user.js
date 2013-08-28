@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          bto-plusone
-// @version       0.1.26
-var version='0.1.26';
+// @version       0.1.27
+var version='0.1.27';
 // @author        jackjack-jj
 // @description   Adds +1/-1 buttons next to bitcointalk.org users and shows their overall ratings.
 // @namespace     https://github.com/jackjack-jj
@@ -111,7 +111,20 @@ function GMGV(p,d,m){
 
 var params      = new Array('','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
 var pdefaults   = new Array('','y','note','y','usd','mtgox','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
-var butnames    = new Array('','make thread titles link to the last read post','format of note display (note/pctnote/pctplus)','display custom tags','currency for Bitcoin price','source for Bitcoin price (mtgox/btcavg/btcavgnogox/btce/stamp)','display Bitcoin price (\'y\' for yes)','Bitcoin price refresh in seconds','put [+-] in bold (\'y\' for yes)','newline before score (\'y\' for yes)','format addresses (\'y\' for yes)','format transactions (\'y\' for yes)','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
+var butnames    = new Array('','make thread titles link to the last read post','format of note display','display custom tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
+
+var listsOfChoices={};
+var YesNo={'y':'Yes','n':'No'};
+listsOfChoices['gotolastreadpost']=YesNo;
+listsOfChoices['displaycustomtags']=YesNo;
+listsOfChoices['displaynoteformat']={'note':'Note: (+1s)-(-1s)','pctnote':'PctNote: (+1s)/total','pctplus':'Pct+1: Note/total'};
+listsOfChoices['btcusdsource']={'mtgox':'MtGox','btcavg':'BitcoinAverage','btcavgnogox':'BitcoinAverage w/o MtGox','btce':'BTC-e','stamp':'Bitstamp'};
+listsOfChoices['displaybtcusd']=YesNo;
+listsOfChoices['buttonsinbold']=YesNo;
+listsOfChoices['newlineBS']=YesNo;
+listsOfChoices['formataddresses']=YesNo;
+listsOfChoices['formattx']=YesNo;
+
 
 var colorPlusOne       = GMGV(params,pdefaults,'colorp1');
 var colorMinusOne      = GMGV(params,pdefaults,'colorm1');
@@ -132,6 +145,10 @@ var displayNoteFormat  = GMGV(params,pdefaults,'displaynoteformat');
 var goToLastReadPost   = GMGV(params,pdefaults,'gotolastreadpost');
 var presetPM           = GMGV(params,pdefaults,'presetpm');
 
+function formatChoice(v,param){
+    if(param in listsOfChoices){return listsOfChoices[param][v];}
+    return v;
+}
 
 function noteNumber(n,v,p,m,type){
     r=[0,'',''];
@@ -230,7 +247,9 @@ function saveSetting(param){
         GM_setValue(param, v);
         document.getElementById(param+'done').innerHTML=' Done';
         var current=document.getElementById('current_'+param);
-        if(current){current.innerHTML=v;}
+        if(current){
+            current.innerHTML=formatChoice(v,param);
+        }
         setTimeout(function(){document.getElementById(param+'done').innerHTML='';},2000);
     }
 }
@@ -239,7 +258,7 @@ function cfa(a){return '<span style="color:green;">'+a+'</span>';}
 var translators=[
 //    ['John','Chinese','1d4c5az42gr84fvre3qszd'],
 ];
-if(document.location.href.split('/btppcontributors.ph').length>1){ // btopo config page
+if(document.location.href.split('/btppcontributors.ph').length>1){
     p=document.location.href.split('/btppcontributors.php?u=')[1];
     body.innerHTML='<title>BT++ Settings</title>'+BTCSS+BTPPtitle+'\
     <a href="https://bitcointalk.org/">Bitcoin Forum</a> > <a href="https://bitcointalk.org/btopoconf.php?user='+p+'">BT++ Settings</a> > Contributors<br /><br /><br /><br />\
@@ -279,7 +298,20 @@ if(document.location.href.split('/btopoconf.ph').length>1){ // btopo config page
         current = GMGV(params,pdefaults,param);
         pwbreaker='';
         if(i==0){type=' type="password" ';current='*hidden*';pwbreaker='no';}
-        table+='<tr><td>'+cfl(butname)+' <a href="" onclick="document.getElementById(\''+param+'\').value=\''+def+'\';return false;">(default='+def+')</span></td><td>Current: <span id="'+pwbreaker+'current_'+param+'">'+current+'</span></td><td><input '+type+' id="'+param+'" /><input type=button id="'+param+'b" value="Change" /><span id="'+param+'done"></span></td></tr>';
+        input='<input '+type+' id="'+param+'" />';
+        
+        if(param in listsOfChoices){
+            choices=listsOfChoices[param];
+            input='<select id="'+param+'">';
+            for(var l_value in choices){if(choices.hasOwnProperty(l_value)){
+                    selected='';
+                    if(current==l_value){selected='selected';}
+                    l_name=choices[l_value];
+                    input+='<option value="'+l_value+'" '+selected+'>'+l_name+'</option>';
+            }}
+            input+='</select>';
+        }
+        table+='<tr><td>'+cfl(butname)+' <a href="" onclick="document.getElementById(\''+param+'\').value=\''+def+'\';return false;">(default='+def+')</span></td><td>Current: <span id="'+pwbreaker+'current_'+param+'">'+formatChoice(current,param)+'</span></td><td>'+input+'</td><td><input type=button id="'+param+'b" value="Change" /><span id="'+param+'done"></span></td></tr>';
     }
     table+='</table>';
     
