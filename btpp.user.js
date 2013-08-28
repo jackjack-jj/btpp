@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          bto-plusone
-// @version       0.1.27
-var version='0.1.27';
+// @version       0.1.28
+var version='0.1.28';
 // @author        jackjack-jj
 // @description   Adds +1/-1 buttons next to bitcointalk.org users and shows their overall ratings.
 // @namespace     https://github.com/jackjack-jj
@@ -247,9 +247,7 @@ function saveSetting(param){
         GM_setValue(param, v);
         document.getElementById(param+'done').innerHTML=' Done';
         var current=document.getElementById('current_'+param);
-        if(current){
-            current.innerHTML=formatChoice(v,param);
-        }
+        if(current){current.innerHTML=formatChoice(v,param);}
         setTimeout(function(){document.getElementById(param+'done').innerHTML='';},2000);
     }
 }
@@ -551,7 +549,7 @@ function pqbf(s){
 
     var start='[quote author='+u+' link=topic='+t+'.msg'+p+'#msg'+p+' date=0]';
     var end='[/quote]';
-    document.forms.postmodify.elements['message'].innerHTML+=start+getSelectionHtml()+end+'\n';
+    document.forms.postmodify.elements['message'].value+=start+getSelectionHtml()+end+'\n';
 }
 
 function makepqbf(s){
@@ -724,7 +722,7 @@ if(displayBTCUSD=='y'){
         function(){
             getPage(ticker, callbackTicker, 0);
         }
-        ,BTCUSDrefresh*1000); //check every minute
+        ,BTCUSDrefresh*1000);
 }
 
 changeTransp('infobox', 0.0);
