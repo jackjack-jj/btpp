@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.1.31
-var version='0.1.31';
+// @version       0.1.32
+var version='0.1.32';
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -120,10 +120,9 @@ function GMGV(p,d,m){
 }
 
 
-
 var params      = new Array('','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
 var pdefaults   = new Array('','y','note','y','usd','mtgox','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
-var butnames    = new Array('','make thread titles link to the last read post','format of note display','display custom tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
+var butnames    = new Array('','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
 
 var listsOfChoices={};
 var YesNo={'y':'Yes','n':'No'};
@@ -137,6 +136,11 @@ listsOfChoices['newlineBS']=YesNo;
 listsOfChoices['formataddresses']=YesNo;
 listsOfChoices['formattx']=YesNo;
 
+var settingsDisplay={
+    'Votes': ['password','newlineBS','displaynoteformat','symbolp1','symbolm1','colorp1','colorm1','colorbpm','buttonsinbold'],
+    'Ticker':['displaybtcusd','btcusdsource','btcusdcurrency','btcusdrefresh'],
+    'Features': ['gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm'],
+};
 
 var colorPlusOne       = GMGV(params,pdefaults,'colorp1');
 var colorMinusOne      = GMGV(params,pdefaults,'colorm1');
@@ -257,10 +261,10 @@ function saveSetting(param){
     return function(){
         var v=document.getElementById(param).value;
         GM_setValue(param, v);
-        document.getElementById(param+'done').innerHTML=' Done';
+//        document.getElementById(param+'done').innerHTML=' Done';
         var current=document.getElementById('current_'+param);
         if(current){current.innerHTML=formatChoice(v,param);}
-        setTimeout(function(){document.getElementById(param+'done').innerHTML='';},2000);
+//        setTimeout(function(){document.getElementById(param+'done').innerHTML='';},2000);
     }
 }
 
@@ -286,42 +290,49 @@ if(document.location.href.split('/btppcontributors.ph').length>1){
 }
 if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
     pseudo=document.location.href.split('user=')[1].split('&')[0];
-    params[0]='password_'+pseudo;
     butnames[0]='password for '+pseudo;
+    params[0]='password_'+pseudo;
     
     body.innerHTML='<title>BT++ Settings</title>'+BTCSS+BTPPtitle+'\
     <a href="https://bitcointalk.org/">Bitcoin Forum</a> > BT++ Settings<br /><br />\
-    <b style="position:relative;right:10px;">Links</b><br />\
+    <b style="position:relative;right:10px;"><h3>Links</h3></b>\
     <a href="https://bitcointalk.org/btppcontributors.php?u='+pseudo+'">Bitcointalk++ contributors</a><br />\
     <a href="https://bitcointalk.org/privatemessages.php">List of your PMs</a><br />\
     <a href="http://jackjack.alwaysdata.net/btoplusone/list/">Lists of all BT++ scores</a><br />\
     <a href="http://jackjack.alwaysdata.net/btoplusone/voteslist.php">Lists of all BT++ votes</a><br />\
     <br />\
-    <b style="position:relative;right:10px;">Settings</b><br />';
+    <b style="position:relative;right:10px;"><h3>Settings</h3></b>';
 
-    table='<table border=0>';
-    for(i=0;i<params.length;i++){
-        param   = params[i];
-        butname = butnames[i];
-        def     = pdefaults[i];
-        type    = '';
-        current = GMGV(params,pdefaults,param);
-        pwbreaker='';
-        if(i==0){type=' type="password" ';current='*hidden*';pwbreaker='no';}
-        input='<input '+type+' id="'+param+'" />';
-        
-        if(param in listsOfChoices){
-            choices=listsOfChoices[param];
-            input='<select id="'+param+'">';
-            for(var l_value in choices){if(choices.hasOwnProperty(l_value)){
-                    selected='';
-                    if(current==l_value){selected='selected';}
-                    l_name=choices[l_value];
-                    input+='<option value="'+l_value+'" '+selected+'>'+l_name+'</option>';
-            }}
-            input+='</select>';
+    table='<table border=0 style="position:relative;bottom:10px;">';
+    for(setting in settingsDisplay){
+        paramz=settingsDisplay[setting];
+        table+='<tr><td colspan=4 style="font-weight:bold;"><span style="position:relative;right:5px;top:5px;">'+setting+'</span></td></tr>';
+        for(j=0;j<paramz.length;j++){
+            if(paramz[j]=='password'){i=0;}
+            else{i=params.indexOf(paramz[j]);}
+            
+            param   = params[i];
+            butname = butnames[i];
+            def     = pdefaults[i];
+            type    = '';
+            current = GMGV(params,pdefaults,param);
+            pwbreaker='';
+            if(i==0){type=' type="password" ';current='*hidden*';pwbreaker='no';}
+            input='<input '+type+' id="'+param+'" />';
+            
+            if(param in listsOfChoices){
+                choices=listsOfChoices[param];
+                input='<select id="'+param+'">';
+                for(var l_value in choices){if(choices.hasOwnProperty(l_value)){
+                        selected='';
+                        if(current==l_value){selected='selected';}
+                        l_name=choices[l_value];
+                        input+='<option value="'+l_value+'" '+selected+'>'+l_name+'</option>';
+                }}
+                input+='</select>';
+            }
+            table+='<tr><td>'+cfl(butname)+' <a href="" onclick="document.getElementById(\''+param+'\').value=\''+def+'\';return false;">(default='+def+')</span></td><td>Current: <span id="'+pwbreaker+'current_'+param+'">'+formatChoice(current,param)+'</span></td><td>'+input+'</td><td><input type=button id="'+param+'b" value="Change" /><span id="'+param+'done"></span></td></tr>';
         }
-        table+='<tr><td>'+cfl(butname)+' <a href="" onclick="document.getElementById(\''+param+'\').value=\''+def+'\';return false;">(default='+def+')</span></td><td>Current: <span id="'+pwbreaker+'current_'+param+'">'+formatChoice(current,param)+'</span></td><td>'+input+'</td><td><input type=button id="'+param+'b" value="Change" /><span id="'+param+'done"></span></td></tr>';
     }
     table+='</table>';
     
@@ -330,7 +341,8 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
     for(i=0;i<params.length;i++){
         param=params[i];
         butname=butnames[i];
-        document.getElementById(param+'b').addEventListener('click',saveSetting(param), false);
+        el=document.getElementById(param+'b');
+        if(el){el.addEventListener('click',saveSetting(param), false);}
     }
     
     return;
