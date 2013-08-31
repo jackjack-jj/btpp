@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name          bto-plusone
-// @version       0.1.28
-var version='0.1.28';
+// @name          BitcoinTalk++
+// @version       0.1.31
+var version='0.1.31';
 // @author        jackjack-jj
-// @description   Adds +1/-1 buttons next to bitcointalk.org users and shows their overall ratings.
+// @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
 // @homepageURL   https://userscripts.org/scripts/show/174546
 // @downloadURL   https://userscripts.org/scripts/source/174546.user.js
@@ -20,7 +20,19 @@ var BTCSS      = '<link rel="stylesheet" type="text/css" href="https://bitcointa
 var BTPPtitle  = '<h1 style="position:relative;bottom:15px;">BitcoinTalk++ v'+version+'</h1>';
 
 var body = document.getElementsByTagName('body')[0];
+var already_running=(document.getElementById('btpp_running')!=undefined);
+if(already_running){
+    document.getElementById("btpp_settings").style.color='red';
+    document.getElementById("infobox").style.backgroundColor='black';
+    document.getElementById("infobox").style.fontWeight='bold';
+    document.getElementById("infobox").style.padding='6px';
+    changeTransp('infobox', 1.0);
+    changeinnerHTML('infobox','<a id="twoinstancesofbtpp" href="https://bitcointalk.org/index.php?topic=264337.msg3044502#msg3044502">Two versions of BitcoinTalk++ detected<br />Please uninstall one</a>');
+    document.getElementById("twoinstancesofbtpp").style.color='red';
+    return;
+}
 
+body.innerHTML+="<span id='btpp_running'></span>";
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -259,7 +271,7 @@ var translators=[
 if(document.location.href.split('/btppcontributors.ph').length>1){
     p=document.location.href.split('/btppcontributors.php?u=')[1];
     body.innerHTML='<title>BT++ Settings</title>'+BTCSS+BTPPtitle+'\
-    <a href="https://bitcointalk.org/">Bitcoin Forum</a> > <a href="https://bitcointalk.org/btopoconf.php?user='+p+'">BT++ Settings</a> > Contributors<br /><br /><br /><br />\
+    <a href="https://bitcointalk.org/">Bitcoin Forum</a> > <a href="https://bitcointalk.org/btppconf.php?user='+p+'">BT++ Settings</a> > Contributors<br /><br /><br /><br />\
     <span style="position:relative;right:0px;">BitcoinTalk++ support address:</span> '+cfa('1Pxeccscj1ygseTdSV1qUqQCanp2B2NMM2')+'<br />\
     <span style="position:relative;right:0px;">Administrator, jackjack:</span> '+cfa('19QkqAza7BHFTuoz9N8UQkryP4E9jHo4N3')+'<br />\
     <br />\
@@ -272,7 +284,7 @@ if(document.location.href.split('/btppcontributors.ph').length>1){
     return;
     
 }
-if(document.location.href.split('/btopoconf.ph').length>1){ // btopo config page
+if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
     pseudo=document.location.href.split('user=')[1].split('&')[0];
     params[0]='password_'+pseudo;
     butnames[0]='password for '+pseudo;
@@ -367,7 +379,7 @@ function callbackPM(r){
     getPage('https://bitcointalk.org/index.php?action=pm;f=inbox;sort=date;start=0', function(r){concatPM(r,0,maxpagePM,callbackPMEnd);}, 0);
 }
 
-if(document.location.href.split('/privatemessages.ph').length>1){ // btopo config page
+if(document.location.href.split('/privatemessages.ph').length>1){
   body.innerHTML='';
   getPage('https://bitcointalk.org/index.php?action=pm', callbackPM, 0);
   return;
@@ -411,7 +423,7 @@ function changeinnerHTML(id,txt){
 function resetPassword(){
     pass='';
     while(pass == ''){
-      pass = window.prompt('BTO+1 password for '+myPseudo);
+      pass = window.prompt('BT++ password for '+myPseudo);
     }
     if(pass == null){
         if(GM_getValue("password_"+myPseudo, '')!=''){
@@ -517,7 +529,7 @@ if(hellotext){
 body.innerHTML = 
 body.innerHTML.replace(
     /<a href="https:\/\/bitcointalk.org\/index.php\?action=help">Help<\/a>/g,
-    '<a href="https://bitcointalk.org/btopoconf.php?user='+myPseudo+'">BT++ settings</a><a href="https://bitcointalk.org/index.php?topic=264337.new;topicseen#new"><span id="needupdate" title="BT++ is not up-to-date">'+GM_getValue('lastversion','')+'</span></a>\
+    '<a href="https://bitcointalk.org/btppconf.php?user='+myPseudo+'"><span id="btpp_settings">BT++ settings</span></a><a href="https://bitcointalk.org/index.php?topic=264337.new;topicseen#new"><span id="needupdate" title="BT++ is not up-to-date">'+GM_getValue('lastversion','')+'</span></a>\
     </td><td valign="top" class="maintab_back"><a href="https://bitcointalk.org/index.php?action=help">Help</a>'
 );
 
