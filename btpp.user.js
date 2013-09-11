@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.1.32
-var version='0.1.32';
+// @version       0.1.37
+var version='0.1.37';
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -11,7 +11,7 @@ var version='0.1.32';
 // @include       https://bitcointalk.org/*
 // ==/UserScript==
 
-var server     = 'https://jackjack.alwaysdata.net/btoplusone/';
+var server     = 'https://jackjack.alwaysdata.net/btpp/';
 var notePage   = 'note.php';
 var votePage   = 'vote.php';
 var clientName = 'official_'+version;
@@ -201,6 +201,7 @@ function formatNote(data,type){
     
     if(n>0){ns='<span style="font-weight:bold;color:#33bb33;">'+before+ns+after+'</span>';}
     if(n<0){ns='<span style="font-weight:bold;color:red;">'+before+ns+after+'</span>';}
+    if(n==0 && v>0){ns='<span style="font-weight:bold;color:blue;">'+before+ns+after+'</span>';}
     
     return ns+"<span style='font-size:50%;'>/"+v+"</span>";
 }
@@ -290,6 +291,7 @@ if(document.location.href.split('/btppcontributors.ph').length>1){
 }
 if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
     pseudo=document.location.href.split('user=')[1].split('&')[0];
+    pseudo=decodeURIComponent(pseudo);
     butnames[0]='password for '+pseudo;
     params[0]='password_'+pseudo;
     
@@ -298,8 +300,9 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
     <b style="position:relative;right:10px;"><h3>Links</h3></b>\
     <a href="https://bitcointalk.org/btppcontributors.php?u='+pseudo+'">Bitcointalk++ contributors</a><br />\
     <a href="https://bitcointalk.org/privatemessages.php">List of your PMs</a><br />\
-    <a href="http://jackjack.alwaysdata.net/btoplusone/list/">Lists of all BT++ scores</a><br />\
-    <a href="http://jackjack.alwaysdata.net/btoplusone/voteslist.php">Lists of all BT++ votes</a><br />\
+    <a href="'+server+'/list/">Lists of all BT++ scores</a><br />\
+    <a href="'+server+'/voteslist.php">Lists of all BT++ votes</a><br />\
+    <a href="'+server+'/scamreports/">List of reported potential scammers</a><br />\
     <br />\
     <b style="position:relative;right:10px;"><h3>Settings</h3></b>';
 
@@ -331,13 +334,18 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
                 }}
                 input+='</select>';
             }
-            table+='<tr><td>'+cfl(butname)+' <a href="" onclick="document.getElementById(\''+param+'\').value=\''+def+'\';return false;">(default='+def+')</span></td><td>Current: <span id="'+pwbreaker+'current_'+param+'">'+formatChoice(current,param)+'</span></td><td>'+input+'</td><td><input type=button id="'+param+'b" value="Change" /><span id="'+param+'done"></span></td></tr>';
+            showbutton='';
+            if(i==0){showbutton='<td><input id="show_password" type=button value="Show" /></td>';}
+            table+='<tr><td>'+cfl(butname)+' <a href="" onclick="document.getElementById(\''+param+'\').value=\''+def+'\';return false;">(default='+def+')</span></td><td>Current: <span id="'+pwbreaker+'current_'+param+'">'+formatChoice(current,param)+'</span></td><td>'+input+'</td><td><input type=button id="'+param+'b" value="Change" /><span id="'+param+'done"></span></td>'+showbutton+'</tr>';
+            
         }
     }
     table+='</table>';
     
     body.innerHTML+=table;
 
+    el=document.getElementById('show_password');
+    if(el){el.addEventListener('click',function(){alert(params[0]+': '+GM_getValue(params[0], 'None'));}, false);}
     for(i=0;i<params.length;i++){
         param=params[i];
         butname=butnames[i];
@@ -464,7 +472,7 @@ if(displayBTCUSD=='y'){
 
 
 //   Make address links
-if(formatAddresses=='y'){
+if(formatAddresses=='y' && document.location.href.split('sa=forumProfil').length==1){
     body.innerHTML=body.innerHTML.replace(
       /([^0-9a-zA-Z:\/>])(1[1-9A-HJ-Za-km-z]{25,33})([^0-9a-zA-Z"])/g,
       '$1<a href="https://blockchain.info/address/$2">$2</a>$3'
@@ -478,14 +486,12 @@ if(formatTransactions=='y'){
     );
 }
 
-/*
-if(formatTransactions=='y'){
-    body.innerHTML=body.innerHTML.replace(
-      /">Ignore<\/a>/g,
-      '">Ignore</a><br /><a href="'+server+'/reportscammer.php?pseudo='+myPseudo+'&pass='+myPassword+'&cible=0&nomcible=0">Mark as scammer</a>'
-    );
-}
-*/
+
+body.innerHTML=body.innerHTML.replace(
+  /action=ignore;u=([^;]*?);topic=(?:[^;]*?);msg=(?:[^;]*?);sesc=(?:[^;]*?)">Ignore<\/a>/g,
+  '$&<br /><a class="reportscammerlink" href="#" onclick="return false;" cible="$1" nomcible="">Report scammer</a>'
+);
+
 
 if(goToLastReadPost=='y'){
     body.innerHTML=body.innerHTML.replace(
@@ -689,7 +695,7 @@ function changePriceDiv(a){
 
 function currToSymbol(c){
     if(c=='EUR'){
-        return Array('',' €');
+        return Array('',' â‚¬');
     }
     else if(c=='USD'){
         return Array('$','');
@@ -751,6 +757,21 @@ if(displayBTCUSD=='y'){
 
 changeTransp('infobox', 0.0);
 changeinnerHTML('infobox','');
+
+
+function makeFuncRSL(c){
+  return function(){ 
+    page=server+'/reportscammer.php?pseudo='+myPseudo+'&pass='+myPassword+'&cible='+c+'&nomcible=';
+    getPage(page, callbackVoted,0); 
+  }
+}
+
+var rsls = document.getElementsByClassName('reportscammerlink');
+for (i=0; i<rsls.length; i++)
+{
+    rsl=rsls[i];
+    rsl.addEventListener('click',makeFuncRSL(rsl.getAttribute('cible')), false);
+}
 
 var headers = document.getElementsByClassName('boutonvote');
 for (i=0; i<headers.length; i++)
