@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.1.38
-var version='0.1.38';
+// @version       0.1.39
+var version='0.1.39';
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -237,10 +237,10 @@ function writeScoresGetPage(uurl, classname, error) {
     xml(arg);
 };
 
-function getPageWithData(uurl, callback, error, d) {
+function getPageWithData(uurl, callback, error, d, met) {
     error = error || function (){};
     var arg = {
-        method: 'POST',
+        method: met,
         url: uurl,
         headers: {
             'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
@@ -255,7 +255,7 @@ function getPageWithData(uurl, callback, error, d) {
     xml(arg);
 }
 function getPage(uurl, callback, error) {
-    getPageWithData(uurl, callback, error, '');
+    getPageWithData(uurl, callback, error, '', 'GET');
 }
 
 function saveSetting(param){
@@ -569,7 +569,7 @@ var uploadImage = function(e) {
                     uis.value='Upload';
                     uis.disabled=false;
                 }
-                ,0,'pseudo='+myPseudo+'&pass='+myPassword+'&fname='+filename+'&v='+content
+                ,0,'pseudo='+myPseudo+'&pass='+myPassword+'&fname='+filename+'&v='+content, 'POST'
             );
         };
       })(f);
@@ -772,6 +772,7 @@ function callbackTicker(r){
         changePriceDiv('Bitstamp: '+symbol[0]+data['ask']+symbol[1]);
         document.getElementById('pricediv').style.width='130px';
     }else{
+        if(data['result']=='error'){changePriceDiv('MtGox: Error');}
         changePriceDiv('MtGox: '+data['return']['last_all']['display']);
         document.getElementById('pricediv').style.width='130px';
     }
