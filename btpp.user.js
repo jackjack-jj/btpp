@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.1.37
-var version='0.1.37';
+// @version       0.1.38
+var version='0.1.38';
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -105,7 +105,7 @@ if(!hasGMGV){
     	oReq.send();
     }
     
-    xml=Chrome_XMLHttpRequest;
+    xml = Chrome_XMLHttpRequest;
 }else{
     xml = GM_xmlhttpRequest;
 };
@@ -120,9 +120,9 @@ function GMGV(p,d,m){
 }
 
 
-var params      = new Array('','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
-var pdefaults   = new Array('','y','note','y','usd','mtgox','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
-var butnames    = new Array('','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
+var params      = new Array('','uploadpicserv','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
+var pdefaults   = new Array('','imgur','y','note','y','usd','mtgox','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
+var butnames    = new Array('','server for uploaded pics','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
 
 var listsOfChoices={};
 var YesNo={'y':'Yes','n':'No'};
@@ -135,11 +135,12 @@ listsOfChoices['buttonsinbold']=YesNo;
 listsOfChoices['newlineBS']=YesNo;
 listsOfChoices['formataddresses']=YesNo;
 listsOfChoices['formattx']=YesNo;
+listsOfChoices['uploadpicserv']={'imgur':'imgur.com'};
 
 var settingsDisplay={
     'Votes': ['password','newlineBS','displaynoteformat','symbolp1','symbolm1','colorp1','colorm1','colorbpm','buttonsinbold'],
     'Ticker':['displaybtcusd','btcusdsource','btcusdcurrency','btcusdrefresh'],
-    'Features': ['gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm'],
+    'Features': ['gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv'],
 };
 
 var colorPlusOne       = GMGV(params,pdefaults,'colorp1');
@@ -167,7 +168,7 @@ function formatChoice(v,param){
 }
 
 function noteNumber(n,v,p,m,type){
-    r=[0,'',''];
+    var r=[0,'',''];
     if(type=='pctnote'){
         if(v>0){
             r[0]=Math.round(100.0*n/v);
@@ -210,6 +211,7 @@ function formatNote(data,type){
 function writeScoresGetPage(uurl, classname, error) {
     error = error || function (){};
     callback=function (r){
+        var data;
        	eval("data="+r.responseText+';');
         for (j=0; j<document.getElementsByClassName('score_'+classname).length; j++){
             document.getElementsByClassName('score_'+classname)[j].innerHTML=formatNote(data,displayNoteFormat);
@@ -232,15 +234,13 @@ function writeScoresGetPage(uurl, classname, error) {
         onload: callback,
         onerror: error
     };
-    var tempData = '';
-    arg.data = tempData + '';
     xml(arg);
 };
 
-function getPage(uurl, callback, error) {
+function getPageWithData(uurl, callback, error, d) {
     error = error || function (){};
     var arg = {
-        method: 'GET',
+        method: 'POST',
         url: uurl,
         headers: {
             'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
@@ -248,14 +248,14 @@ function getPage(uurl, callback, error) {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         //synchronous: true, // FF will crash if the network is slow. 
-        data: '',
+        data: d,
         onload: callback,
         onerror: error
     };
-
-    var tempData = '';
-    arg.data = tempData + '';
     xml(arg);
+}
+function getPage(uurl, callback, error) {
+    getPageWithData(uurl, callback, error, '');
 }
 
 function saveSetting(param){
@@ -355,9 +355,8 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
     
     return;
 }
+
 BTCUSDrefresh=Number(BTCUSDrefresh);
-
-
 
 var regexpPMS = new RegExp('\n\t\t<tr><td((.|\n)*?)</table>\n\t\t</td></tr>', "g");
 var PMfaits=0;
@@ -406,6 +405,24 @@ if(document.location.href.split('/privatemessages.ph').length>1){
 }
 
 
+
+var myPseudo   = '__NotConnected__'; //Don't change this
+var myPassword = ''; //Don't change this
+
+var hellotext = document.getElementById('hellomember');
+if(hellotext){
+    var reg = new RegExp('Hello <b>([^>]*)<\/b>', "g");
+    var chaine = hellotext.innerHTML;
+    myPseudo = reg.exec(chaine)[1];
+    
+    myPassword=GM_getValue("password_"+myPseudo, "");
+}else{
+    //  Not connected
+}
+
+
+
+
 threadview=(body.innerHTML.indexOf('">With a <i>Quick-Reply</i> you can use bulletin board code and smileys as you would in a normal post, but much more conveniently.')>-1);
 var smileyspacer='&nbsp;&nbsp;';
 smileys='<a href="javascript:void(0);" onclick="surroundText(\'[b]\', \'[/b]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/bold.gif" align="bottom" width="23" height="22" alt="Bold" title="Bold" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><a href="javascript:void(0);" onclick="surroundText(\'[i]\', \'[/i]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/italicize.gif" align="bottom" width="23" height="22" alt="Italicized" title="Italicized" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><a href="javascript:void(0);" onclick="surroundText(\'[u]\', \'[/u]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/underline.gif" align="bottom" width="23" height="22" alt="Underline" title="Underline" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><a href="javascript:void(0);" onclick="surroundText(\'[s]\', \'[/s]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/strike.gif" align="bottom" width="23" height="22" alt="Strikethrough" title="Strikethrough" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><img src="https://bitcointalk.org/Themes/custom1/images/bbc/divider.gif" alt="|" style="margin: 0 3px 0 3px;" /><a href="javascript:void(0);" onclick="replaceText(\'[btc]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/BTC.gif" align="bottom" width="23" height="22" alt="Insert Bitcoin symbol" title="Insert Bitcoin symbol" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><img src="https://bitcointalk.org/Themes/custom1/images/bbc/divider.gif" alt="|" style="margin: 0 3px 0 3px;" /><a href="javascript:void(0);" onclick="surroundText(\'[glow=red,2,300]\', \'[/glow]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/glow.gif" align="bottom" width="23" height="22" alt="Glow" title="Glow" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><a href="javascript:void(0);" onclick="surroundText(\'[shadow=red,left]\', \'[/shadow]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/shadow.gif" align="bottom" width="23" height="22" alt="Shadow" title="Shadow" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><img src="https://bitcointalk.org/Themes/custom1/images/bbc/divider.gif" alt="|" style="margin: 0 3px 0 3px;" /><a href="javascript:void(0);" onclick="surroundText(\'[pre]\', \'[/pre]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/pre.gif" align="bottom" width="23" height="22" alt="Preformatted Text" title="Preformatted Text" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><a href="javascript:void(0);" onclick="surroundText(\'[left]\', \'[/left]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/left.gif" align="bottom" width="23" height="22" alt="Left Align" title="Left Align" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><a href="javascript:void(0);" onclick="surroundText(\'[center]\', \'[/center]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/center.gif" align="bottom" width="23" height="22" alt="Centered" title="Centered" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><a href="javascript:void(0);" onclick="surroundText(\'[right]\', \'[/right]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/right.gif" align="bottom" width="23" height="22" alt="Right Align" title="Right Align" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><img src="https://bitcointalk.org/Themes/custom1/images/bbc/divider.gif" alt="|" style="margin: 0 3px 0 3px;" /><a href="javascript:void(0);" onclick="replaceText(\'[hr]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/hr.gif" align="bottom" width="23" height="22" alt="Horizontal Rule" title="Horizontal Rule" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><img src="https://bitcointalk.org/Themes/custom1/images/bbc/divider.gif" alt="|" style="margin: 0 3px 0 3px;" /><a href="javascript:void(0);" onclick="surroundText(\'[size=10pt]\', \'[/size]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/size.gif" align="bottom" width="23" height="22" alt="Font Size" title="Font Size" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a><a href="javascript:void(0);" onclick="surroundText(\'[font=Verdana]\', \'[/font]\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="https://bitcointalk.org/Themes/custom1/images/bbc/face.gif" align="bottom" width="23" height="22" alt="Font Face" title="Font Face" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a>'+
@@ -426,7 +443,6 @@ smileyspacer+'<a href="javascript:void(0);" onclick="replaceText(\' :-X\', docum
 smileyspacer+'<a href="javascript:void(0);" onclick="replaceText(\' :-\\\\\', document.forms.postmodify.message); return false;"><img src="https://bitcointalk.org/Smileys/default/undecided.gif" align="bottom" alt="Undecided" title="Undecided" /></a>'+
 smileyspacer+'<a href="javascript:void(0);" onclick="replaceText(\' :-*\', document.forms.postmodify.message); return false;"><img src="https://bitcointalk.org/Smileys/default/kiss.gif" align="bottom" alt="Kiss" title="Kiss" /></a>'+
 smileyspacer+'<a href="javascript:void(0);" onclick="replaceText(\' :\\\\\'(\', document.forms.postmodify.message); return false;"><img src="https://bitcointalk.org/Smileys/default/cry.gif" align="bottom" alt="Cry" title="Cry" /></a>';
-
 
 
 
@@ -529,19 +545,48 @@ if(threadview){
     }
 }
 
-var myPseudo   = '__NotConnected__'; //Don't change this
-var myPassword = ''; //Don't change this
 
-var hellotext = document.getElementById('hellomember');
-if(hellotext){
-    var reg = new RegExp('Hello <b>([^>]*)<\/b>', "g");
-    var chaine = hellotext.innerHTML;
-    myPseudo = reg.exec(chaine)[1];
-    
-    myPassword=GM_getValue("password_"+myPseudo, "");
-}else{
-    //  Not connected
+var uploadImage = function(e) {
+    var uis=document.getElementById('uploadimgsubmit');
+    uis.value='Uploading...';
+    uis.disabled='disabled';
+    var f=document.getElementById('uploadedfile').files[0];
+    if(f==undefined){return;}
+      var reader = new FileReader();
+      reader.onload = (function(theFile) {
+        return function(e) {
+          if(theFile.size>10000000){return;}
+          var res=e.target.result;
+          var filename=escape(theFile.name);
+          var content=encodeURIComponent(res);
+            getPageWithData(server+'/uploadpic.php', 
+                function(r){
+                    var d;
+                	eval("d="+r.responseText+';');
+                	if(d['error']!='none'){return;}
+                	var txt='<a href="javascript:void(0);" onclick="replaceText(\'[img]'+d['link']+'[/img]\', document.forms.postmodify.message); return false;">Insert "'+filename+'"</a>';
+                    document.getElementById("listofuploadedpics").innerHTML+='<br />'+txt;
+                    uis.value='Upload';
+                    uis.disabled=false;
+                }
+                ,0,'pseudo='+myPseudo+'&pass='+myPassword+'&fname='+filename+'&v='+content
+            );
+        };
+      })(f);
+      reader.readAsDataURL(f);
 }
+
+
+body.innerHTML=body.innerHTML.replace(
+        /<textarea class="editor" name="message"/g,
+      'Upload image: <input name="uploadedfile" id="uploadedfile" type="file" />\
+<input type="button" id="uploadimgsubmit" value="Upload" /><span id="listofuploadedpics"></span>\
+</td></tr><tr><td valign="top" align="right"></td><td>$&');
+body.innerHTML=body.innerHTML.replace(
+        /<textarea cols=/g,
+      '<br />Upload image: <input name="uploadedfile" id="uploadedfile" type="file" />\
+<input type="button" id="uploadimgsubmit" value="Upload" /><span id="listofuploadedpics"></span>\
+$&');
 
 
 body.innerHTML = 
@@ -550,6 +595,8 @@ body.innerHTML.replace(
     '<a href="https://bitcointalk.org/btppconf.php?user='+myPseudo+'"><span id="btpp_settings">BT++ settings</span></a><a href="https://bitcointalk.org/index.php?topic=264337.new;topicseen#new"><span id="needupdate" title="BT++ is not up-to-date">'+GM_getValue('lastversion','')+'</span></a>\
     </td><td valign="top" class="maintab_back"><a href="https://bitcointalk.org/index.php?action=help">Help</a>'
 );
+
+
 
 var meanLVRefresh=5;
 if(myPseudo=='jackjack' && version[version.length-1]=='b'){
@@ -695,7 +742,7 @@ function changePriceDiv(a){
 
 function currToSymbol(c){
     if(c=='EUR'){
-        return Array('',' â‚¬');
+        return Array('',' €');
     }
     else if(c=='USD'){
         return Array('$','');
@@ -709,6 +756,7 @@ function callbackTicker(r){
     var c=btcusdCurrency;
     var s=btcusdSource;
     var symbol=currToSymbol(c);
+    var data;
     
 	eval("data="+r.responseText+';');
     if(s=='btcavg'){
@@ -797,4 +845,9 @@ for (i=0; i<listPseudosNos.length; i++)
         server+'/'+notePage+'?json=1&client=official&clientversion='+version+'&pseudo='+listPseudos[i]+'&no='+listPseudosNos[i]+'&p='+myPseudo,
         pseudono
     );
+}
+
+var element = window.document.getElementById("uploadimgsubmit");
+if (element && element.addEventListener) {
+    element.addEventListener("click", uploadImage, false);
 }
