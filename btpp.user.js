@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.1.42
-var version='0.1.42';
+// @version       0.2.0
+var version='0.2.0';
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -33,6 +33,14 @@ if(already_running){
 }
 
 body.innerHTML+="<span id='btpp_running'></span>";
+
+function changeTransp(id, pct){
+  document.getElementById(id).style.opacity=pct;
+}
+
+function changeinnerHTML(id,txt){
+  document.getElementById(id).innerHTML=txt;
+}
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -261,14 +269,13 @@ function getPage(uurl, callback, error) {
     getPageWithData(uurl, callback, error, '', 'GET');
 }
 
-function saveSetting(param){
+function saveSetting(param,v){
     return function(){
-        var v=document.getElementById(param).value;
+        if(v==undefined){v=document.getElementById(param).value;}
         GM_setValue(param, v);
-//        document.getElementById(param+'done').innerHTML=' Done';
         var current=document.getElementById('current_'+param);
         if(current){current.innerHTML=formatChoice(v,param);}
-//        setTimeout(function(){document.getElementById(param+'done').innerHTML='';},2000);
+        v=undefined;
     }
 }
 
@@ -292,22 +299,59 @@ if(document.location.href.split('/btppcontributors.ph').length>1){
     return;
     
 }
+
+function saveSettingsServer(){
+    var s={};
+    for(pn in params){if(pn==0){continue;}p=params[pn];
+        s[p]=GMGV(params,pdefaults,p);
+    }
+    getPageWithData(server+"/savesettings.php", function(r){
+            changeinnerHTML('savesettingserror',r.responseText);
+            setTimeout(function(){changeinnerHTML('savesettingserror','');},3000);
+        }, 0, 
+        'pos=0&pseudo='+pseudo+'&pass='+GM_getValue('password_'+pseudo,'BT++JJNOTSET')+'&data='+encodeURIComponent(JSON.stringify(s))
+    ,'POST');
+}
+
+function loadSettingsServer(){
+    getPageWithData(server+"/loadsettings.php", function(r){
+            var d;
+            eval("d="+r.responseText+';');
+            var err=d['error'];
+            if(err=="none"){
+                var dd=d['data'];
+                for(p in dd){
+                    var v=dd[p];
+                    if(v!='BT++JJNOTSET'){saveSetting(p,v)();}
+                }
+                changeinnerHTML('loadsettingserror',' (done)');
+                setTimeout(function(){changeinnerHTML('loadsettingserror','');},3000);
+            }else{changeinnerHTML('loadsettingserror',err);}
+            
+        }, 0, 
+        'pos=0&pseudo='+pseudo+'&pass='+GM_getValue('password_'+pseudo,'')
+    ,'POST');
+}
+
 if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
-    pseudo=document.location.href.split('user=')[1].split('&')[0];
+    var pseudo=document.location.href.split('user=')[1].split('&')[0];
     pseudo=decodeURIComponent(pseudo);
     butnames[0]='password for '+pseudo;
     params[0]='password_'+pseudo;
     
     body.innerHTML='<title>BT++ Settings</title>'+BTCSS+BTPPtitle+'\
     <a href="https://bitcointalk.org/">Bitcoin Forum</a> > BT++ Settings<br /><br />\
-    <b style="position:relative;right:10px;"><h3>Links</h3></b>\
+    <b style="position:relative;right:10px;"><h2>Links</h2></b>\
     <a href="https://bitcointalk.org/btppcontributors.php?u='+pseudo+'">Bitcointalk++ contributors</a><br />\
     <a href="https://bitcointalk.org/privatemessages.php">List of your PMs</a><br />\
     <a href="'+server+'/list/">Lists of all BT++ scores</a><br />\
     <a href="'+server+'/voteslist.php">Lists of all BT++ votes</a><br />\
     <a href="'+server+'/scamreports/">List of reported potential scammers</a><br />\
     <br />\
-    <b style="position:relative;right:10px;"><h3>Settings</h3></b>';
+    <b style="position:relative;right:10px;"><h2>Settings</h2></b>\
+    <span style="position:relative;bottom:10px;right:3px;"><a href="javascript:void(0)" id="savesettings" style="font-weight:bold;font-size:105%;">Save settings</a><span id="savesettingserror"></span></span><br />\
+    <span style="position:relative;bottom:10px;right:3px;"><a href="javascript:void(0)" id="loadsettings" style="font-weight:bold;font-size:105%;">Load settings</a><span id="loadsettingserror"></span></span><br />\
+    ';
 
     table='<table border=0 style="position:relative;bottom:10px;">';
     for(setting in settingsDisplay){
@@ -353,9 +397,13 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
         param=params[i];
         butname=butnames[i];
         el=document.getElementById(param+'b');
-        if(el){el.addEventListener('click',saveSetting(param), false);}
+        if(el){el.addEventListener('click',saveSetting(param,undefined), false);}
     }
     
+    el=document.getElementById('savesettings');
+    if(el){el.addEventListener('click',saveSettingsServer, false);}
+    el=document.getElementById('loadsettings');
+    if(el){el.addEventListener('click',loadSettingsServer, false);}
     return;
 }
 
@@ -451,13 +499,6 @@ smileyspacer+'<a href="javascript:void(0);" onclick="replaceText(\' :\\\\\'(\', 
 
 
 
-function changeTransp(id, pct){
-  document.getElementById(id).style.opacity=pct;
-}
-
-function changeinnerHTML(id,txt){
-  document.getElementById(id).innerHTML=txt;
-}
 
 function resetPassword(){
     pass='';
