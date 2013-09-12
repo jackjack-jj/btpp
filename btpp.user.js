@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.2.0
-var version='0.2.0';
+// @version       0.2.1
+var version='0.2.1';
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -794,7 +794,7 @@ function changePriceDiv(a){
 
 function currToSymbol(c){
     if(c=='EUR'){
-        return Array('',' â‚¬');
+        return Array('',' €');
     }
     else if(c=='USD'){
         return Array('$','');
