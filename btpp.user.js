@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.1.39
-var version='0.1.39';
+// @version       0.1.42
+var version='0.1.42';
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -120,9 +120,9 @@ function GMGV(p,d,m){
 }
 
 
-var params      = new Array('','uploadpicserv','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
-var pdefaults   = new Array('','imgur','y','note','y','usd','mtgox','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
-var butnames    = new Array('','server for uploaded pics','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
+var params      = new Array('','anonupload','uploadpicserv','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
+var pdefaults   = new Array('','y','imgur','y','note','y','usd','mtgox','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
+var butnames    = new Array('','anonymous image upload','server for uploaded pics','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
 
 var listsOfChoices={};
 var YesNo={'y':'Yes','n':'No'};
@@ -136,11 +136,12 @@ listsOfChoices['newlineBS']=YesNo;
 listsOfChoices['formataddresses']=YesNo;
 listsOfChoices['formattx']=YesNo;
 listsOfChoices['uploadpicserv']={'imgur':'imgur.com'};
+listsOfChoices['anonupload']=YesNo;
 
 var settingsDisplay={
     'Votes': ['password','newlineBS','displaynoteformat','symbolp1','symbolm1','colorp1','colorm1','colorbpm','buttonsinbold'],
     'Ticker':['displaybtcusd','btcusdsource','btcusdcurrency','btcusdrefresh'],
-    'Features': ['gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv'],
+    'Features': ['gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv','anonupload'],
 };
 
 var colorPlusOne       = GMGV(params,pdefaults,'colorp1');
@@ -161,6 +162,8 @@ var displayCustomTags  = GMGV(params,pdefaults,'displaycustomtags');
 var displayNoteFormat  = GMGV(params,pdefaults,'displaynoteformat');
 var goToLastReadPost   = GMGV(params,pdefaults,'gotolastreadpost');
 var presetPM           = GMGV(params,pdefaults,'presetpm');
+var servImageUpload    = GMGV(params,pdefaults,'uploadpicserv');
+var anonImageUpload    = GMGV(params,pdefaults,'anonupload');
 
 function formatChoice(v,param){
     if(param in listsOfChoices){return listsOfChoices[param][v];}
@@ -546,10 +549,28 @@ if(threadview){
 }
 
 
-var uploadImage = function(e) {
+
+
+body.innerHTML=body.innerHTML.replace(
+        /<textarea class="editor" name="message"/g,
+      'Upload image: <input name="uploadedfile" id="uploadedfile" type="file" />\
+<input type="button" id="uploadimgsubmit" value="Upload" /><span id="listofuploadedpics"></span>\
+</td></tr><tr><td valign="top" align="right"></td><td>$&');
+body.innerHTML=body.innerHTML.replace(
+        /<textarea cols=/g,
+      '<br />Upload image: <input name="uploadedfile" id="uploadedfile" type="file" />\
+<input type="button" id="uploadimgsubmit" value="Upload" /><span id="listofuploadedpics"></span>\
+$&');
+
+function renameEnableUploadButton(txt,enable){
     var uis=document.getElementById('uploadimgsubmit');
-    uis.value='Uploading...';
-    uis.disabled='disabled';
+    uis.value=txt;
+    if(enable==-1){uis.disabled='disabled';}
+    else if(enable==1){uis.disabled=false;}
+}
+
+var uploadImage = function(e) {
+    renameEnableUploadButton('Uploading...', -1);
     var f=document.getElementById('uploadedfile').files[0];
     if(f==undefined){return;}
       var reader = new FileReader();
@@ -563,30 +584,20 @@ var uploadImage = function(e) {
                 function(r){
                     var d;
                 	eval("d="+r.responseText+';');
-                	if(d['error']!='none'){return;}
-                	var txt='<a href="javascript:void(0);" onclick="replaceText(\'[img]'+d['link']+'[/img]\', document.forms.postmodify.message); return false;">Insert "'+filename+'"</a>';
-                    document.getElementById("listofuploadedpics").innerHTML+='<br />'+txt;
-                    uis.value='Upload';
-                    uis.disabled=false;
+                	var err=d['error'];
+                	if(err=='none'){
+                    	var txt='<a href="javascript:void(0);" onclick="replaceText(\'[img]'+d['link']+'[/img]\', document.forms.postmodify.message); return false;">Insert "'+filename+'"</a>';
+                        document.getElementById("listofuploadedpics").innerHTML+='<br />'+txt;
+                        renameEnableUploadButton('Upload', 1);
+                    }else if(err=='badpw'){renameEnableUploadButton('Bad Password', -1);}
+                    else{renameEnableUploadButton(err, d['disableButton']);}
                 }
-                ,0,'pseudo='+myPseudo+'&pass='+myPassword+'&fname='+filename+'&v='+content, 'POST'
+                ,0,'serv='+servImageUpload+'&anon='+anonImageUpload+'&pseudo='+myPseudo+'&pass='+myPassword+'&fname='+filename+'&v='+content, 'POST'
             );
         };
       })(f);
       reader.readAsDataURL(f);
 }
-
-
-body.innerHTML=body.innerHTML.replace(
-        /<textarea class="editor" name="message"/g,
-      'Upload image: <input name="uploadedfile" id="uploadedfile" type="file" />\
-<input type="button" id="uploadimgsubmit" value="Upload" /><span id="listofuploadedpics"></span>\
-</td></tr><tr><td valign="top" align="right"></td><td>$&');
-body.innerHTML=body.innerHTML.replace(
-        /<textarea cols=/g,
-      '<br />Upload image: <input name="uploadedfile" id="uploadedfile" type="file" />\
-<input type="button" id="uploadimgsubmit" value="Upload" /><span id="listofuploadedpics"></span>\
-$&');
 
 
 body.innerHTML = 
@@ -742,7 +753,7 @@ function changePriceDiv(a){
 
 function currToSymbol(c){
     if(c=='EUR'){
-        return Array('',' €');
+        return Array('',' â‚¬');
     }
     else if(c=='USD'){
         return Array('$','');
