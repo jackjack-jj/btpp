@@ -14,7 +14,7 @@
 // @include       http://btpp.jampa.eu/*
 // @include       https://btpp.jampa.eu/*
 // ==/UserScript==
-var version='0.2.87';
+var version='0.2.88';
 
 var body = document.getElementsByTagName('body')[0];
 var website='BT';
@@ -32,7 +32,7 @@ var server     = 'http://btpp.jampa.eu/';
 var notePage   = 'note.php';
 var votePage   = 'vote.php';
 var clientName = 'official_'+version;
-var updatefile = server+'/btpp-chrome-update.php';
+var updatefile = server+'/lastversion.php?v='+version;
 var BTCSS      = '<link rel="stylesheet" type="text/css" href="https://bitcointalk.org/Themes/custom1/style.css?fin11" />';
 var BTPPtitle  = '<h1 style="position:relative;bottom:15px;">BitcoinTalk++ v'+version+'</h1>';
 
@@ -1008,18 +1008,8 @@ if(myPseudo=='jackjack' && version[version.length-1]=='b'){
     document.getElementById('needupdate').innerHTML='';
 }else{
     if(Math.random()<1.0/meanLVRefresh || GM_getValue('myversion','')!=version){
-/*        getPage(server+'/lastversion.php?v='+version, 
-            function(r){
-                if(r.responseText!=version){
-                    GM_setValue('lastversion','*');
-                }else{
-                    GM_setValue('lastversion','');
-                }
-                document.getElementById('needupdate').innerHTML=GM_getValue('lastversion','');
-            }*/
         getPage(updatefile, 
             function(r){
-//                var lv=r.responseText.split("version='")[2].split("'")[0];
                 var lv=r.responseText;
                 if(lv!=version){
                     GM_setValue('lastversion','*');
