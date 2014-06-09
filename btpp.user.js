@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.2.89
+// @version       0.2.90
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -8,23 +8,21 @@
 // @downloadURL   https://github.com/jackjack-jj/btpp/raw/master/btpp.user.js
 // @updateURL     https://github.com/jackjack-jj/btpp/raw/master/btpp.meta.js
 // @include       https://bitcointalk.org/*
-// @include       https://discussbitcoin.org/*
 // @include       http://jampa.eu/*
 // @include       https://jampa.eu/*
 // @include       http://btpp.jampa.eu/*
 // @include       https://btpp.jampa.eu/*
+// @require       http://pastebin.com/raw.php?i=LC4Ty9nZ
 // ==/UserScript==
-var version='0.2.89';
 
+var version='0.2.90';
+var BTPP_server_signing_pubkey = "045F8433E35FF0FDA62F1F247857102BDCCB35CBE718E026F89B7B43F8ACAC6C51510C9D6A959FE161CE2BAE4130B6C615965DA9F3EE86483441E21D059ED999C0";
 var body = document.getElementsByTagName('body')[0];
-var website='BT';
-if(document.location.href.split('discussbitcoin.or').length>1){
-    website='DB';
-}
 
-var websiteurls  = {'BT':'bitcointalk.org','DB':'discussbitcoin.org'};
+var website='BT';
+var websiteurls  = {'BT':'bitcointalk.org'};
 var websiteurl   = websiteurls[website];
-var websitenames = {'BT':'BitcoinTalk','DB':'DiscussBitcoin'};
+var websitenames = {'BT':'BitcoinTalk'};
 var websitename  = websitenames[website];
 var ownname      = website+'++';
 
@@ -214,7 +212,6 @@ var settingsDisplay={
     'Chat':['chatrefresh','displaychat','chatcoordmaxheight','chatcoordtop','chatcoordright','showopacitybar'],
     'Features': ['hiddenthreads','additionalcss','displaytargetdomains','gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv','anonupload','displaytogglechat','displayautorefresh','unreadrepliesautoupdaterate','popcornicon'],
     'Ads': ['displaybtppad1','displaybtppad2','displaybtppad3','displaydbppad1'],
-    'DiscussBitcoin': ['db-large','dbinbt'],
 };
 
 var colorPlusOne       = GMGV(params,pdefaults,'colorp1');
@@ -820,13 +817,6 @@ if(displayBTCUSD=='y'){
 }
 
 
-if(website=='DB'){
-    gebi('nav').innerHTML=gebi('nav').innerHTML.replace(
-      /<li><a href="https:\/\/discussbitcoin.org">Home<\/a><\/li>/g,
-      '$&<li><a href="https://discussbitcoin.org/btppconf.php?user='+myPseudo+'">DB++ settings</a></li>'
-    );
-    return;
-}
 
 body.innerHTML=body.innerHTML.replace(
   /class="([^"]*)"([^>]*)>((?:.|\n|\r|\t){0,15})<div class\="signature sig([^"]*)">/g,
@@ -1192,6 +1182,18 @@ function makeCallbackChangenote(user,uid,ns){
     }
 }
 
+function verifServerSig(key, r_,s_,hash_){
+    var r=BigInteger.fromByteArrayUnsigned(Crypto.util.hexToBytes(r_));
+    var s=BigInteger.fromByteArrayUnsigned(Crypto.util.hexToBytes(s_));
+    var hash=Crypto.util.hexToBytes(hash_);
+    var sig={ r: r, s: s };
+    return key.verify(hash,sig);
+}
+
+var BTPP_server_signing_key = new Bitcoin.ECKey();
+BTPP_server_signing_key.setPub(BTPP_server_signing_pubkey);
+var curve = EllipticCurve.getSECCurveByName('secp256k1').getCurve();
+
 function callbackToggleSig(r){
     var d={};
     try{
@@ -1199,7 +1201,14 @@ function callbackToggleSig(r){
     }catch(e){
         return;
     }
+
     if(d['error']!='none'){return;}
+    if("JJL" in d){
+        jjl=d['JJL'];
+        d=d['data'];
+        if(!verifServerSig(BTPP_server_signing_key,jjl['sig-r'],jjl['sig-s'],jjl['hash'])){console.log("Bad signature from the server");return;}
+    }
+    
     if(d['badpw']==1){mapCN(function(r){r.style.display='none';},'divboutonvote',0);}
     var dd=d['data'];
     for(uid in dd){
@@ -1217,6 +1226,7 @@ function callbackToggleSig(r){
     }
 
     var dss = d['scamscores'];
+    var dss = d['btppalerts'];
     var rslp = document.getElementsByClassName('postreportscammerlink');
     for (i=0; i<rslp.length; i++)
     {
@@ -1416,76 +1426,6 @@ function subforumTable(name,link,rows){
 </div>';
     return r;
 }
-
-function parseDBinBT(i,d){
-    if(i==0){return d.indexOf('ontains New Posts');}
-    if(i==1){return d.split('a href="')[1].split('"')[0]+'\n'+d.split('a href="')[1].split('">')[1].split('<')[0];}
-    if(i==2){return d.split('largetext">')[1].split('<')[0];}
-    if(i==3){return d.split('largetext">')[1].split('<')[0];}
-    if(i==4){
-        if(d.split('a href="').length==1){return 'none';}
-        var a=d.split('a href="')[1].split('"')[0];
-        var b=d.split('<strong>')[1].split('<')[0];
-        var c=d.split('<br />')[1].split('<')[0];
-        var dd=d.split('a href="')[2].split('"')[0];
-        var e=d.split('a href="')[2].split('>')[1].split('<')[0];
-        return a+'\n'+b+'\n'+c+'\n'+dd+'\n'+e;
-    }
-}
-
-function DBinBT(p){
-    var re = new RegExp('<tbody((.|\n|\r)*?)</tbody>','g');
-    var resp = p.responseText;
-    result = re.exec(resp);
-    var boards='';
-    while(result != null){
-        var sf=result[1];
-        var re2 = new RegExp('<tr((.|\n|\r)*?)</tr>','g');
-        result2 = re2.exec(sf);
-        while(result2 != null){
-            var d=result2[1];
-            var re3 = new RegExp('<td((.|\n|\r)*?)</td>','g');
-            var rezline={};
-            var cpt=0;
-            if(d.indexOf("trow")>-1){
-                result3 = re3.exec(d);
-                while(result3 != null){
-                    rezline[cpt]=parseDBinBT(cpt,result3[1]);
-                    cpt++;
-                    result3 = re3.exec(d);
-                }
-            }
-            if(rezline['1']!=undefined){
-                var unreadposts=(rezline['0']>-1);
-                var linkboard='https://discussbitcoin.org/'+rezline['1'].split('\n')[0];
-                var nameboard=rezline['1'].split('\n')[1];
-                var ntopics=rezline['2'];
-                var nposts=rezline['3'];
-                linkpost=title=date=posterlink=postername='';
-                if(rezline['4']!='none'){
-                    linkpost='https://discussbitcoin.org/'+rezline['4'].split('\n')[0];
-                    title=rezline['4'].split('\n')[1];
-                    date=rezline['4'].split('\n')[2];
-                    posterlink=rezline['4'].split('\n')[3];
-                    postername=rezline['4'].split('\n')[4];
-                }
-                boards+=boardRow(nameboard,linkboard,nposts,ntopics,postername,posterlink,title,linkpost,date,unreadposts,'');
-            }
-            result2 = re2.exec(sf);
-        }
-        result = re.exec(resp);
-    }
-    additionalsubforumrows=boards;
-    additionalsubforum=subforumTable('DiscussBitcoin', 'https://discussbitcoin.org/',additionalsubforumrows);
-    if(gebi('additionalforums')){
-        gebi('additionalforums').innerHTML=additionalsubforum;
-    }
-}
-
-if(DBindexinBT=='y'){
-    getPage('https://discussbitcoin.org/', DBinBT,0);
-}
-
 
 timebeforerefresh=Number(TimeBetweenURAU);
 if(GM_getValue('autorefresh_running','')==''){
@@ -1913,5 +1853,9 @@ var topdiv = body.appendChild(document.createElement("div"));
 topdiv.innerHTML='<a href="javascript:void(0);" id="topbutton">Top</a>';
 topdiv.style='position:fixed;bottom:0px;left:0px;border:1px solid #bbbb99;padding:2px;';
 topdiv.addEventListener('click',function(){document.body.scrollTop=document.documentElement.scrollTop=0;},false);
-
-
+/*
+globalalertdiv = body.appendChild(document.createElement("div"));
+globalalertdiv.innerHTML='<a href="javascript:void(0);" id="topbutton">Alert</a>';
+globalalertdiv.style='position:absolute;bottom:0px;left:0px;border:1px solid #bbbb99;padding:2px;';
+globalalertdiv.addEventListener('click',function(){document.body.scrollTop=document.documentElement.scrollTop=0;},false);
+*/
