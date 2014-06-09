@@ -3,7 +3,7 @@ var qsdsqd="test";
 alert(qsdsqd);
 
 
-(function () {alert("cdcsud");
+(function () {alert("cdcsud");var qsdoe="gfml";
 })();
 
 
