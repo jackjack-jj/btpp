@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.2.91
+// @version       0.2.92
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -15,7 +15,7 @@
 // @require       http://pastebin.com/raw.php?i=LC4Ty9nZ
 // ==/UserScript==
 
-var version='0.2.91';
+var version='0.2.92';
 var BTPP_server_signing_pubkey = "045F8433E35FF0FDA62F1F247857102BDCCB35CBE718E026F89B7B43F8ACAC6C51510C9D6A959FE161CE2BAE4130B6C615965DA9F3EE86483441E21D059ED999C0";
 var body = document.getElementsByTagName('body')[0];
 
@@ -177,9 +177,9 @@ function GMGV(p,d,m){
 if(GM_getValue('chatcoordtop',' ').slice(GM_getValue('chatcoordtop',' ').length-1)=='%'){GM_setValue('chatcoordtop','0px');}
 if(GM_getValue('chatcoordright',' ').slice(GM_getValue('chatcoordright',' ').length-1)=='%'){GM_setValue('chatcoordright','0px');}
 
-var params      = new Array('','popcornicon','hiddenthreads','additionalcss','displaytargetdomains','displaytogglechat','displayautorefresh','showopacitybar','chatrefresh','chatcoordmaxheight','chatcoordright','chatcoordtop','displaychat','displaydbppad1','displaybtppad3','displaybtppad2','displaybtppad1','unreadrepliesautoupdaterate','dbinbt','db-large','anonupload','uploadpicserv','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
-var pdefaults   = new Array('','n','','','y','n','y','n','2','150px','0px','500px','y','n','n','n','n','600','n','n','y','imgur','y','note','y','usd','mtgox','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
-var butnames    = new Array('','show popcorn button','threads to hide (e.g. \'bt:42;bt:1337;etc\')','additional CSS (online file or text)','display target domain after every link','display toggle chat button','display auto-refresh button','Show opacity bar','refresh rate of the chat in seconds','max height of the chatbox','space between right border and chatbox','space between top border and chatbox','display the chat','At the top of the page of DiscussBitcoin','At the top of the page','Above the original BitcoinTalk ad','At the bottom of the screen','Auto-refresh time in seconds (0 for never)','put the DiscussBitcoin index in BitcoinTalk','expand the DB layout','anonymous image upload','server for uploaded pics','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
+var params      = new Array('','showpwsentences','popcornicon','hiddenthreads','additionalcss','displaytargetdomains','displaytogglechat','displayautorefresh','showopacitybar','chatrefresh','chatcoordmaxheight','chatcoordright','chatcoordtop','displaychat','displaydbppad1','displaybtppad3','displaybtppad2','displaybtppad1','unreadrepliesautoupdaterate','dbinbt','db-large','anonupload','uploadpicserv','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
+var pdefaults   = new Array('','n','n','','','y','n','y','n','2','150px','0px','500px','y','n','n','n','n','600','n','n','y','imgur','y','note','y','usd','mtgox','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
+var butnames    = new Array('','show pre-written sentences','show popcorn button','threads to hide (e.g. \'bt:42;bt:1337;etc\')','additional CSS (online file or text)','display target domain after every link','display toggle chat button','display auto-refresh button','Show opacity bar','refresh rate of the chat in seconds','max height of the chatbox','space between right border and chatbox','space between top border and chatbox','display the chat','At the top of the page of DiscussBitcoin','At the top of the page','Above the original BitcoinTalk ad','At the bottom of the screen','Auto-refresh time in seconds (0 for never)','put the DiscussBitcoin index in BitcoinTalk','expand the DB layout','anonymous image upload','server for uploaded pics','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
 
 var listsOfChoices={};
 var YesNo={'y':'Yes','n':'No'};
@@ -205,12 +205,13 @@ listsOfChoices['displayautorefresh']=YesNo;
 listsOfChoices['displaytogglechat']=YesNo;
 listsOfChoices['displaytargetdomains']=YesNo;
 listsOfChoices['popcornicon']=YesNo;
+listsOfChoices['showpwsentences']=YesNo;
 
 var settingsDisplay={
    'Votes': ['password','newlineBS','displaynoteformat','symbolp1','symbolm1','colorp1','colorm1','colorbpm','buttonsinbold'],
    'Ticker':['displaybtcusd','btcusdsource','btcusdcurrency','btcusdrefresh'],
    'Chat':['chatrefresh','displaychat','chatcoordmaxheight','chatcoordtop','chatcoordright','showopacitybar'],
-   'Features': ['hiddenthreads','additionalcss','displaytargetdomains','gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv','anonupload','displaytogglechat','displayautorefresh','unreadrepliesautoupdaterate','popcornicon'],
+   'Features': ['hiddenthreads','additionalcss','displaytargetdomains','gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv','anonupload','displaytogglechat','displayautorefresh','unreadrepliesautoupdaterate','popcornicon','showpwsentences'],
    'Ads': ['displaybtppad1','displaybtppad2','displaybtppad3','displaydbppad1'],
 };
 
@@ -253,6 +254,7 @@ var displayDomains     = GMGV(params,pdefaults,'displaytargetdomains');
 var AdditionalCSS      = GMGV(params,pdefaults,'additionalcss');
 var hiddenThreads      = GMGV(params,pdefaults,'hiddenthreads');
 var showPopcornIcon    = GMGV(params,pdefaults,'popcornicon');
+var showPreWrittentSen = GMGV(params,pdefaults,'showpwsentences');
 
 refreshChat=1000.0*Number(refreshChat);
 
@@ -909,6 +911,20 @@ if(threadview){
    }
 }
 
+preformattedTexts='';
+if(showPreWrittentSen=='y'){
+    preformattedTexts='<select onchange="surroundText(this.options[this.selectedIndex].getAttribute(\'textz\'), \'\', document.forms.postmodify.message);this.selectedIndex=0;"><option>Click to insert a sentence</option>';
+    preformattedTextsList=[ 
+        ['WTF am i reading.png','[img width=250]http://btpp.jampa.eu/images/wtf.png[/img]',''],
+        ['RTFM','RTFM',''],
+    ];
+    for(var i=0;i<preformattedTextsList.length;i++){
+        z=preformattedTextsList[i];
+        preformattedTexts+='<option textz="'+z[1]+'">'+z[0]+'</option>';
+    }
+    preformattedTexts+='</select>';
+}
+
 popcornicon='';
 if(showPopcornIcon=='y'){popcornicon='<a href="javascript:void(0);" onclick="surroundText(\'[img]http://btpp.jampa.eu/images/popcorn.gif[/img]\', \'\', document.forms.postmodify.message); return false;"><img onmouseover="bbc_highlight(this, true);" onmouseout="if (window.bbc_highlight) bbc_highlight(this, false);" src="http://btpp.jampa.eu/images/popcorn_icon.gif" align="bottom" width="23" height="22" alt="Insert popcorn image" title="Insert popcorn image" style="background-image: url(https://bitcointalk.org/Themes/custom1/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;" /></a>';}
 body.innerHTML=body.innerHTML.replace(
@@ -928,7 +944,7 @@ body.innerHTML=body.innerHTML.replace(
 body.innerHTML=body.innerHTML.replace(
        /<textarea cols=/g,
      '<br />Upload image: <input name="uploadedfile" id="uploadedfile" type="file" />\
-<input type="button" id="uploadimgsubmit" value="Upload" /><span id="listofuploadedpics"></span>\
+<input type="button" id="uploadimgsubmit" value="Upload" /><span id="listofuploadedpics"></span><br />'+preformattedTexts+'\
 $&');
 
 function renameEnableUploadButton(txt,enable){
@@ -1042,16 +1058,16 @@ function makeldbf(s){
    return function(){ldbf(s);};
 }
 
-like_span_class="like_button like_button_$4";
-like_text_class="like_button_text_$4";
-like_img_class ="like_button_img_$4";
+like_span_class="like_button like_button_$5";
+like_text_class="like_button_text_$5";
+like_img_class ="like_button_img_$5";
 body.innerHTML=body.innerHTML.replace(
- /(View the profile of ([^"]*?)"(?:(.|\n)*?)<a href="(?:.*?)quote=(.*?);topic=(.*?)\.(.*?)" (.*?)>)(<([^<]*?)alt="Reply with quote"(.*?)><\/a>)/g,
+ /(View the profile of ([^"]*?)"(?:(.|\n)*?))(<a href="(?:.*?)quote=(.*?);topic=(.*?)\.(.*?)" (.*?)><(.*?)alt="Reply with quote"(.*?)><\/a>)/g,
  '$1'+
- '<a href="javascript:void(0);" post="$4" lod="like" class="'+like_span_class+'"><span class="'+like_text_class+'">0</span><img class="'+like_img_class+'" height=16 src="http://btpp.jampa.eu/images/like.png" /></span></a>&nbsp;'+
- '<a href="javascript:void(0);" post="$4" lod="dislike" class="'+like_span_class+'"><span class="dis'+like_text_class+'">0</span><img class="dis'+like_img_class+'" height=16 src="http://btpp.jampa.eu/images/dislike.png" /></span></a>'+
- '&nbsp;&nbsp;$8&nbsp;'+
- '<a href="javascript:void(0);"><span class="partialquotebutton" user="$2" thread="$5" post="$4"><img src="http://btpp.jampa.eu/images/partialquote.png" /></span></a>'+
+ '<a href="javascript:void(0);" post="$5" lod="like" class="'+like_span_class+'"><span class="'+like_text_class+'">0</span><img class="'+like_img_class+'" height=16 src="http://btpp.jampa.eu/images/like.png" /></span></a>&nbsp;'+
+ '<a href="javascript:void(0);" post="$5" lod="dislike" class="'+like_span_class+'"><span class="dis'+like_text_class+'">0</span><img class="dis'+like_img_class+'" height=16 src="http://btpp.jampa.eu/images/dislike.png" /></span></a>'+
+ '&nbsp;&nbsp;$4&nbsp;'+
+ '<a href="javascript:void(0);"><span class="partialquotebutton" user="$2" thread="$6" post="$5"><img src="http://btpp.jampa.eu/images/partialquote.png" /></span></a>'+
 '');
 
 listOfPostsInPage="";
@@ -1907,5 +1923,8 @@ if (typeof String.prototype.startsWith != 'function') {
    return this.slice(0, str.length) == str;
  };
 }
+
+
+
 
 
