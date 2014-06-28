@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.2.91
+// @version       0.2.92
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
