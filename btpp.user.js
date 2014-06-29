@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.2.92
+// @version       0.2.93
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -15,7 +15,7 @@
 // @require       http://pastebin.com/raw.php?i=LC4Ty9nZ
 // ==/UserScript==
 
-var version='0.2.92';
+var version='0.2.93';
 var BTPP_server_signing_pubkey = "045F8433E35FF0FDA62F1F247857102BDCCB35CBE718E026F89B7B43F8ACAC6C51510C9D6A959FE161CE2BAE4130B6C615965DA9F3EE86483441E21D059ED999C0";
 var body = document.getElementsByTagName('body')[0];
 
@@ -1049,8 +1049,8 @@ function makepqbf(s){
 function ldbf(s){
    var post=s.getAttribute('post');
    var lod=s.getAttribute('lod');
-   page=server+'/sigfilter.php?pseudo='+myPseudo+'&pass='+myPassword+'&cmd=likepost&uid='+myUID+'&client=official&clientversion='+version+'&lod='+lod+'&postsinpage='+listOfPostsInPage+'&post='+post;
-   console.log(page);
+   var thread=document.location.href.replace(/.*=([0-9]*?)\..*/g,'$1');
+   page=server+'/sigfilter.php?pseudo='+myPseudo+'&pass='+myPassword+'&cmd=likepost&uid='+myUID+'&client=official&clientversion='+version+'&lod='+lod+'&postsinpage='+listOfPostsInPage+'&post='+post+'&thread='+thread;
    getPage(page, callbackToggleSig,0); 
 }
 
@@ -1058,17 +1058,20 @@ function makeldbf(s){
    return function(){ldbf(s);};
 }
 
+color_ldbuttons='';
 like_span_class="like_button like_button_$5";
 like_text_class="like_button_text_$5";
 like_img_class ="like_button_img_$5";
 body.innerHTML=body.innerHTML.replace(
- /(View the profile of ([^"]*?)"(?:(.|\n)*?))(<a href="(?:.*?)quote=(.*?);topic=(.*?)\.(.*?)" (.*?)><(.*?)alt="Reply with quote"(.*?)><\/a>)/g,
+ /(View the profile of ([^"]*?)"(?:(.|\n)*?))(<a href="(?:.*?)quote=(.*?);topic=(.*?)\.(.*?)" (.*?)><(.*?)alt="Reply with quote"(.*?)><\/a>)((?:(.|\n)*?)>#(?:[0-9]*?)<\/a>)/g,
  '$1'+
- '<a href="javascript:void(0);" post="$5" lod="like" class="'+like_span_class+'"><span class="'+like_text_class+'">0</span><img class="'+like_img_class+'" height=16 src="http://btpp.jampa.eu/images/like.png" /></span></a>&nbsp;'+
- '<a href="javascript:void(0);" post="$5" lod="dislike" class="'+like_span_class+'"><span class="dis'+like_text_class+'">0</span><img class="dis'+like_img_class+'" height=16 src="http://btpp.jampa.eu/images/dislike.png" /></span></a>'+
  '&nbsp;&nbsp;$4&nbsp;'+
  '<a href="javascript:void(0);"><span class="partialquotebutton" user="$2" thread="$6" post="$5"><img src="http://btpp.jampa.eu/images/partialquote.png" /></span></a>'+
-'');
+ '$11'+
+ '&nbsp;&nbsp;<span style="font-size:150%;position:relative;top:3px;">|</span>&nbsp;&nbsp;<span style="background-color:'+color_ldbuttons+';padding:2px 0 5px 0;border:solid 0px '+color_ldbuttons+';border-radius:4px;"><a href="javascript:void(0);" post="$5" lod="like" class="'+like_span_class+'"><span class="'+like_text_class+'"></span><img class="'+like_img_class+'" height=16 src="http://btpp.jampa.eu/images/like.png" /></a>&nbsp;'+
+ '<a href="javascript:void(0);" post="$5" lod="dislike" class="'+like_span_class+'"><span class="dis'+like_text_class+'"></span><img class="dis'+like_img_class+'" height=16 src="http://btpp.jampa.eu/images/dislike.png" /></a>'+
+ '</span>'
+);
 
 listOfPostsInPage="";
 ldbuttons=document.getElementsByClassName('like_button');
@@ -1444,7 +1447,7 @@ if(element && element.addEventListener){
 }
 
 urlInitialServerContact=server+'/sigfilter.php?pseudo='+myPseudo+'&pass='+myPassword+'&cmd=query&usersinpage='+serpseudonos+'&uid='+myUID+'&client=official&clientversion='+version+'&postsinpage='+listOfPostsInPage;
-console.log(urlInitialServerContact);
+//console.log(urlInitialServerContact);
 getPage(urlInitialServerContact, callbackToggleSig,0); 
 
 function boardRow(boardname,boardlink,nposts,ntopics,lastposter,linkposter,lastpost,linktopic,lastpostdate,unreadposts,mods){
