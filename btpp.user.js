@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.2.94
+// @version       0.2.95
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -16,7 +16,7 @@
 // @grant         GM_xmlhttpRequest 
 // ==/UserScript==
 
-var version='0.2.94';
+var version='0.2.95';
 var BTPP_server_signing_pubkey = "045F8433E35FF0FDA62F1F247857102BDCCB35CBE718E026F89B7B43F8ACAC6C51510C9D6A959FE161CE2BAE4130B6C615965DA9F3EE86483441E21D059ED999C0";
 var body = document.getElementsByTagName('body')[0];
 
@@ -180,9 +180,9 @@ function GMGV(p,d,m){
 if(GM_getValue('chatcoordtop',' ').slice(GM_getValue('chatcoordtop',' ').length-1)=='%'){GM_setValue('chatcoordtop','0px');}
 if(GM_getValue('chatcoordright',' ').slice(GM_getValue('chatcoordright',' ').length-1)=='%'){GM_setValue('chatcoordright','0px');}
 
-var params      = new Array('','showcsseditorbtn', 'textcss','showpwsentences','popcornicon','hiddenthreads','additionalcss','displaytargetdomains','displaytogglechat','displayautorefresh','showopacitybar','chatrefresh','chatcoordmaxheight','chatcoordright','chatcoordtop','displaychat','displaydbppad1','displaybtppad3','displaybtppad2','displaybtppad1','unreadrepliesautoupdaterate','dbinbt','db-large','anonupload','uploadpicserv','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
-var pdefaults   = new Array('','n','','n','n','','','y','n','y','n','2','150px','0px','500px','y','n','n','n','n','600','n','n','y','imgur','y','note','y','usd','btcavg','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
-var butnames    = new Array('','show CSS editor button','additional CSS (text)','show pre-written sentences','show popcorn button','threads to hide (e.g. \'bt:42;bt:1337;etc\')','additional CSS (online file)','display target domain after every link','display toggle chat button','display auto-refresh button','Show opacity bar','refresh rate of the chat in seconds','max height of the chatbox','space between right border and chatbox','space between top border and chatbox','display the chat','At the top of the page of DiscussBitcoin','At the top of the page','Above the original BitcoinTalk ad','At the bottom of the screen','Auto-refresh time in seconds (0 for never)','put the DiscussBitcoin index in BitcoinTalk','expand the DB layout','anonymous image upload','server for uploaded pics','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
+var params      = new Array('','addstodisplay','googlesearchform', 'showcsseditorbtn', 'textcss','showpwsentences','popcornicon','hiddenthreads','additionalcss','displaytargetdomains','displaytogglechat','displayautorefresh','showopacitybar','chatrefresh','chatcoordmaxheight','chatcoordright','chatcoordtop','displaychat','displaydbppad1','displaybtppad3','displaybtppad2','displaybtppad1','unreadrepliesautoupdaterate','dbinbt','db-large','anonupload','uploadpicserv','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
+var pdefaults   = new Array('','','n', 'n','','n','n','','','y','n','y','n','2','150px','0px','500px','y','n','n','n','n','600','n','n','y','imgur','y','note','y','usd','btcavg','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
+var butnames    = new Array('','Addresses to follow','use Google as search engine','show CSS editor button','additional CSS (text)','show pre-written sentences','show popcorn button','threads to hide (e.g. \'bt:42;bt:1337;etc\')','additional CSS (online file)','display target domain after every link','display toggle chat button','display auto-refresh button','Show opacity bar','refresh rate of the chat in seconds','max height of the chatbox','space between right border and chatbox','space between top border and chatbox','display the chat','At the top of the page of DiscussBitcoin','At the top of the page','Above the original BitcoinTalk ad','At the bottom of the screen','Auto-refresh time in seconds (0 for never)','put the DiscussBitcoin index in BitcoinTalk','expand the DB layout','anonymous image upload','server for uploaded pics','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
 
 var listsOfChoices={};
 var YesNo={'y':'Yes','n':'No'};
@@ -210,12 +210,13 @@ listsOfChoices['displaytargetdomains']=YesNo;
 listsOfChoices['popcornicon']=YesNo;
 listsOfChoices['showpwsentences']=YesNo;
 listsOfChoices['showcsseditorbtn']=YesNo;
+listsOfChoices['googlesearchform']=YesNo;
 
 var settingsDisplay={
    'Votes': ['password','newlineBS','displaynoteformat','symbolp1','symbolm1','colorp1','colorm1','colorbpm','buttonsinbold'],
-   'Ticker':['displaybtcusd','btcusdsource','btcusdcurrency','btcusdrefresh'],
+   'Ticker':['displaybtcusd','btcusdsource','btcusdcurrency','btcusdrefresh','addstodisplay'],
    'Chat':['chatrefresh','displaychat','chatcoordmaxheight','chatcoordtop','chatcoordright','showopacitybar'],
-   'Features': ['hiddenthreads','showcsseditorbtn','textcss','additionalcss','displaytargetdomains','gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv','anonupload','displaytogglechat','displayautorefresh','unreadrepliesautoupdaterate','popcornicon','showpwsentences'],
+   'Features': ['googlesearchform', 'hiddenthreads','showcsseditorbtn','textcss','additionalcss','displaytargetdomains','gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv','anonupload','displaytogglechat','displayautorefresh','unreadrepliesautoupdaterate','popcornicon','showpwsentences'],
    'Ads': ['displaybtppad1','displaybtppad2','displaybtppad3','displaydbppad1'],
 };
 
@@ -261,6 +262,8 @@ var showPopcornIcon    = GMGV(params,pdefaults,'popcornicon');
 var showPreWrittentSen = GMGV(params,pdefaults,'showpwsentences');
 var AddedTextCSS       = GMGV(params,pdefaults,'textcss');
 var ShowCSSEdBtn       = GMGV(params,pdefaults,'showcsseditorbtn');
+var GoogleSearchForm   = GMGV(params,pdefaults,'googlesearchform');
+var AddressesToFollow  = GMGV(params,pdefaults,'addstodisplay');
 
 function apply_stringified_css(s){
     if(!s)return;
@@ -548,7 +551,7 @@ function do_the_css_editor_stuff(){
             makecsspropform(editcssdiv, e[1][j], i, e[1][j]);
         }
     }
-    prependChild(editcssdiv, span_with_text('<b>CSS editor:<br /><br /></b>'));
+    prependChild(editcssdiv, span_with_text('<b style="font-size:150%;">CSS editor</b><br />Feel free to propose me more properties to edit<br /><br />'));
     savebtneditcss = editcssdiv.appendChild(document.createElement("input"));
     savebtneditcss.id = 'saveeditcss';
     savebtneditcss.type = 'button';
@@ -604,7 +607,7 @@ function saveSettingsServer(){
 function loadSettingsServer(){
    getPageWithData(server+"/loadsettings.php", function(r){
            var d;
-           eval("d="+r.responseText+';');
+           d = JSON.parse(r.responseText);
            var err=d['error'];
            if(err=="none"){
                var dd=d['data'];
@@ -622,6 +625,9 @@ function loadSettingsServer(){
 }
 
 if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
+   help_for_settings = {
+       'addstodisplay':'The ticker will include the total balance of all the addresses you put in this field. The format is the following: &quot;1addr1,1addr2,1addr3,1etc&quot;.'
+   };
    var pseudo=document.location.href.split('user=')[1].split('&')[0];
    pseudo=decodeURIComponent(pseudo);
 
@@ -659,7 +665,7 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
            current = GMGV(params,pdefaults,param);
            pwbreaker='';
            if(i==0){type=' type="password" ';current='*hidden*';pwbreaker='no';}
-           var cut_ht=((param == 'hiddenthreads' || param == 'textcss') && current.length>20);
+           var cut_ht=((param == 'hiddenthreads' || param == 'textcss' || param == 'addstodisplay') && current.length>20);
            if(cut_ht){current='*hidden*';}
            input='<input '+type+' id="'+param+'" />';
            
@@ -677,7 +683,9 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
            showbutton='';
            if(i==0){showbutton='<td><input id="show_password" type=button value="Show" /></td>';}
            if(cut_ht){showbutton='<td><input id="show'+param+'" type=button value="Show" /></td>';}
-           table+='<tr><td>'+cfl(butname)+' <a href="" onclick="document.getElementById(\''+param+'\').value=\''+def+'\';return false;">(default='+def+')</span></td><td>Current: <span id="'+pwbreaker+'current_'+param+'">'+formatChoice(current,param)+'</span></td><td>'+input+'</td><td><input type=button id="'+param+'b" value="Change" /><span id="'+param+'done"></span></td>'+showbutton+'</tr>';
+           table+='<tr><td>'+cfl(butname)+' <a href="" onclick="document.getElementById(\''+param+'\').value=\''+def+'\';return false;">(default='+def+')</span></td><td>Current: <span id="'+pwbreaker+'current_'+param+'">'+formatChoice(current,param)+'</span></td><td>'+input+'</td><td><input type=button id="'+param+'b" value="Change" /><span id="'+param+'done"></span></td>'+showbutton+'';
+           if (help_for_settings[param])table += '<td><input type=button value="Help" onclick="alert(\''+help_for_settings[param]+'\');" /></td>';
+           table += '</tr>';
            
        }
    }
@@ -687,10 +695,12 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
 
    el=document.getElementById('show_password');
    if(el){el.addEventListener('click',function(){alert(params[0]+': '+GM_getValue(params[0], 'None'));}, false);}
+   el=document.getElementById('showaddstodisplay');
+   if(el){el.addEventListener('click',function(){alert('Addresses to follow: '+GM_getValue('addstodisplay', 'None'));}, false);}
    el=document.getElementById('showtextcss');
-   if(el){el.addEventListener('click',function(){alert('CSS text'+': '+GM_getValue('textcss', 'None'));}, false);}
+   if(el){el.addEventListener('click',function(){alert('CSS text: '+GM_getValue('textcss', 'None'));}, false);}
    el=document.getElementById('showhiddenthreads');
-   if(el){el.addEventListener('click',function(){alert('Hidden threads'+': '+GM_getValue('hiddenthreads', 'None'));}, false);}
+   if(el){el.addEventListener('click',function(){alert('Hidden threads: '+GM_getValue('hiddenthreads', 'None'));}, false);}
    for(i=0;i<params.length;i++){
        param=params[i];
        butname=butnames[i];
@@ -811,6 +821,7 @@ function resetPassword(){
    GM_setValue("password_"+myPseudo, pass);
 }
 
+addsbalancelist = AddressesToFollow.split(',');
 
 refreshcountdown = body.appendChild(document.createElement("div"));
 refreshcountdown.id='refreshcountdown';
@@ -819,14 +830,49 @@ infobox = body.appendChild(document.createElement("div"));
 infobox.id='infobox';
 infobox.style.cssText='z-index:15;background-color:#ddddff;border:1px solid #bbbbdd;max-width:500px;position:fixed;top:2px;right:2px;padding:2px 2px 2px 2px;';
 if(displayBTCUSD=='y'){
-    pricediv = body.appendChild(document.createElement("div"));
+    bigpricediv = body.appendChild(document.createElement("div"));
+    bigpricediv.id='bigpricediv';
+    bigpricediv.style.cssText='position:fixed;top:0px;left:0px;right:0px;width:200px;margin-right:auto;margin-left:auto;background-color:#E5E5F3;text-align:center;border:solid 1px #333399;font-weight:bold;padding:2px;';
+
+    pricediv = bigpricediv.appendChild(document.createElement("div"));
     pricediv.id='pricediv';
-    pricediv.style.cssText='position:fixed;top:0px;left:0px;right:0px;width:200px;margin-right:auto;margin-left:auto;background-color:#E5E5F3;text-align:center;border:solid 1px #333399;font-weight:bold;padding:2px;';
     pricediv.innerHTML='Contacting ticker...';
+
+    if (addsbalancelist.length > 0){
+        addbalpricediv = bigpricediv.appendChild(document.createElement("div"));
+        addbalpricediv.id='addsbalancediv';
+        addbalpricediv.setAttribute('tot_received', '0');
+        addbalpricediv.setAttribute('tot_balance', '0');
+    }
 }
 
-function changePriceDiv(a){
-   document.getElementById('pricediv').innerHTML=a;
+addsbalancediv = body.appendChild(document.createElement("div"));
+addsbalancediv.id='addsbalancediv2';
+addsbalancediv.style.cssText='position:absolute;top:10px;left:10px;';
+addsbalancediv.innerHTML='';
+function address_to_urlbalance(a){
+    return 'https://blockchain.info/q/addressbalance/'+a+'?cors=true';
+}
+function handle_add_balances(add,l){
+    return function(r){
+        totrec=parseInt(gebi('addsbalancediv').getAttribute('tot_received')) + 1;
+        gebi('addsbalancediv').setAttribute('tot_received', totrec);
+        totbal=parseInt(gebi('addsbalancediv').getAttribute('tot_balance')) + parseInt(r.responseText);
+        gebi('addsbalancediv').setAttribute('tot_balance', totbal);
+        if (totrec==l)
+        {
+            gebi('addsbalancediv').innerHTML = 'Balance: '+(totbal/1e8)+' BTC';
+        }
+    }
+}
+for (i in addsbalancelist){
+    add=addsbalancelist[i];
+    getPage(address_to_urlbalance(add), handle_add_balances(add, addsbalancelist.length));
+}
+
+function changePriceDiv(a, t){
+    document.getElementById('pricediv').innerHTML = a;
+    document.getElementById('bigpricediv').style.width = t + 'px';
 }
 
 function currToSymbol(c){
@@ -847,22 +893,17 @@ function callbackTicker(r){
    var symbol=currToSymbol(c);
    var data;
    
-eval("data="+r.responseText+';');
+   data = JSON.parse(r.responseText);
    if(s=='btcavg'){
-       changePriceDiv('BTCaverage: '+symbol[0]+data[c]['averages']['last']+symbol[1]);
-       document.getElementById('pricediv').style.width='180px';
+       changePriceDiv('BTCaverage: '+symbol[0]+data[c]['averages']['last']+symbol[1], 180);
    }else if(s=='btce'){
-       changePriceDiv('BTC-e: '+symbol[0]+data['ticker']['last']+symbol[1]);
-       document.getElementById('pricediv').style.width='150px';
+       changePriceDiv('BTC-e: '+symbol[0]+data['ticker']['last']+symbol[1], 150);
    }else if(s=='stamp'){
-       changePriceDiv('Bitstamp: '+symbol[0]+data['ask']+symbol[1]);
-       document.getElementById('pricediv').style.width='130px';
+       changePriceDiv('Bitstamp: '+symbol[0]+data['ask']+symbol[1], 130);
    }else if(s=='bitonic'){
-       changePriceDiv('Bitonic: '+symbol[0]+data['euros_formatted']+symbol[1]);
-       document.getElementById('pricediv').style.width='130px';
+       changePriceDiv('Bitonic: '+symbol[0]+data['euros_formatted']+symbol[1], 130);
    }else{
-       changePriceDiv('BTCaverage: '+symbol[0]+data[c]['averages']['last']+symbol[1]);
-       document.getElementById('pricediv').style.width='180px';
+       changePriceDiv('BTCaverage: '+symbol[0]+data[c]['averages']['last']+symbol[1], 180);
    }
 }
 
@@ -1978,10 +2019,40 @@ globalalertdiv.style='position:absolute;bottom:0px;left:0px;border:1px solid #bb
 globalalertdiv.addEventListener('click',function(){document.body.scrollTop=document.documentElement.scrollTop=0;},false);
 */
 
+if(GoogleSearchForm=='y'){
+    all_forms_in_page = document.getElementsByTagName('form');
+    for(i in all_forms_in_page){
+        form = all_forms_in_page[i];
+        if (form.getAttribute('action')=='https://bitcointalk.org/index.php?action=search2'){
+            form.id = 'search_form';
+            form.onsubmit=function(){
+                if(gebi('search_form').topic){
+                    gebi('search_form').search.value += ' inurl:https://bitcointalk.org/index.php?topic=' + gebi('search_form').topic.value;
+                }else if (form.children.length == 5){
+                    gebi('search_form').search.value += ' "board='+form.children[4].value+'" inurl:https://bitcointalk.org/';
+                }else{
+                    gebi('search_form').search.value += ' inurl:https://bitcointalk.org/';
+                }
+                return true;
+            }
+            form.method = 'GET';
+            form.action = 'https://www.google.com/search';
+            form.search.name = 'q';
+            form.children[0].href='http://google.com';
+            form.children[0].children[0].src='http://btpp.jampa.eu/images/google_logo.png';
+            form.children[0].children[0].style.position='relative';
+            form.children[0].children[0].style.top='-4px';
+            form.children[1].href='http://google.fr';
+            break;
+        }
+    }
+}
+
 if (typeof String.prototype.startsWith != 'function') {
  String.prototype.startsWith = function (str){
    return this.slice(0, str.length) == str;
  };
 }
 
+console.log("BitcoinTalk++ stopped.");
 
