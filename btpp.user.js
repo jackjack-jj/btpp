@@ -821,7 +821,8 @@ function resetPassword(){
    GM_setValue("password_"+myPseudo, pass);
 }
 
-addsbalancelist = AddressesToFollow.split(',');
+addsbalancelist = [];
+if (AddressesToFollow!='')addsbalancelist = AddressesToFollow.split(',');
 
 refreshcountdown = body.appendChild(document.createElement("div"));
 refreshcountdown.id='refreshcountdown';
