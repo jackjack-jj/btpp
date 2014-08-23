@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.2.93
+// @version       0.2.94
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -13,9 +13,10 @@
 // @include       http://btpp.jampa.eu/*
 // @include       https://btpp.jampa.eu/*
 // @require       http://pastebin.com/raw.php?i=LC4Ty9nZ
+// @grant         GM_xmlhttpRequest 
 // ==/UserScript==
 
-var version='0.2.93';
+var version='0.2.94';
 var BTPP_server_signing_pubkey = "045F8433E35FF0FDA62F1F247857102BDCCB35CBE718E026F89B7B43F8ACAC6C51510C9D6A959FE161CE2BAE4130B6C615965DA9F3EE86483441E21D059ED999C0";
 var body = document.getElementsByTagName('body')[0];
 
@@ -33,6 +34,23 @@ var clientName = 'official_'+version;
 var updatefile = server+'/lastversion.php?v='+version;
 var BTCSS      = '<link rel="stylesheet" type="text/css" href="https://bitcointalk.org/Themes/custom1/style.css?fin11" />';
 var BTPPtitle  = '<h1 style="position:relative;bottom:15px;">BitcoinTalk++ v'+version+'</h1>';
+
+var navigatorName = (function(){
+    var ua=navigator.userAgent, tem, 
+    M=ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+    if(/trident/i.test(M[1])){
+        tem=/\brv[ :]+(\d+)/g.exec(ua) || [];
+        return 'IE '+(tem[1] || '');
+    }
+    if(M[1]==='Chrome'){
+        tem=ua.match(/\bOPR\/(\d+)/)
+        if(tem!=null) return 'Opera '+tem[1];
+    }
+    M=M[2]?[M[1], M[2]]:[navigator.appName, navigator.appVersion, '-?'];
+    if((tem=ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+    return M[0];
+})();
+
 
 var already_running=(document.getElementById('btpp_running')!=undefined);
 if(already_running){
@@ -94,7 +112,7 @@ function getSelectionHtml() {
    return html;
 }
 
-function addCSS(css) {
+function addCSS(css){
    head = document.getElementsByTagName('head')[0];
    if(!head){return;}
    style = document.createElement('style');
@@ -116,50 +134,35 @@ var hasGMGV = !(typeof GM_getValue === "undefined" || GM_getValue("a", "b") === 
 var cachedSettings = null;
 var xml;
 if(!hasGMGV){
-GM_getValue = function(name, defaultValue){
-var value = (cachedSettings === null ?
-localStorage.getItem(name) :
-cachedSettings[name]);
-if(value === undefined || value === null){
-return defaultValue;
+    GM_getValue = function(name, defaultValue){
+        var value = (cachedSettings === null ? localStorage.getItem(name) : cachedSettings[name]);
+        if(value === undefined || value === null){
+	        return defaultValue;
+        }
+        if(value==null){return value;}
+        var type = value[0];
+        value=value.substring(1);
+        switch (type){
+            case "b":
+	            return (value === "true");
+            case "n":
+	            return Number(value);
+            default:
+	            return value;
+        }
+    }
+    
+    GM_setValue = function(name, value){
+        value = (typeof value)[0] + value;
+        if (cachedSettings === null){
+        	localStorage.setItem(name, value);
+        }else{
+        	cachedSettings[name] = value;
+        	chrome.extension.sendRequest({type: "setpref", name: name, value: value});
+        }
+    }
 }
-if(value==null){return value;}
-var type = value[0];
-value=value.substring(1);
-switch (type){
-case "b":
-return (value === "true");
-case "n":
-return Number(value);
-default:
-return value;
-}
-}
-
-GM_setValue = function(name, value){
-value = (typeof value)[0] + value;
-if (cachedSettings === null){
-localStorage.setItem(name, value);
-}else{
-cachedSettings[name] = value;
-chrome.extension.sendRequest({type: "setpref", name: name, value: value});
-}
-}
-
-   function Chrome_XMLHttpRequest(a){
-   	var oReq = new XMLHttpRequest();
-   
-       oReq.open(a.method, a.url, true);
-       oReq.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-       oReq.onload = function(r){a.onload(r.currentTarget);}
-       oReq.onerror = a.onerror;
-       oReq.send(a.data);
-   }
-   
-   xml = Chrome_XMLHttpRequest;
-}else{
-   xml = GM_xmlhttpRequest;
-};
+xml = GM_xmlhttpRequest;
 
 var myPseudo   = GM_getValue('BT_username','');
 var myPassword = '';
@@ -177,16 +180,16 @@ function GMGV(p,d,m){
 if(GM_getValue('chatcoordtop',' ').slice(GM_getValue('chatcoordtop',' ').length-1)=='%'){GM_setValue('chatcoordtop','0px');}
 if(GM_getValue('chatcoordright',' ').slice(GM_getValue('chatcoordright',' ').length-1)=='%'){GM_setValue('chatcoordright','0px');}
 
-var params      = new Array('','showpwsentences','popcornicon','hiddenthreads','additionalcss','displaytargetdomains','displaytogglechat','displayautorefresh','showopacitybar','chatrefresh','chatcoordmaxheight','chatcoordright','chatcoordtop','displaychat','displaydbppad1','displaybtppad3','displaybtppad2','displaybtppad1','unreadrepliesautoupdaterate','dbinbt','db-large','anonupload','uploadpicserv','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
-var pdefaults   = new Array('','n','n','','','y','n','y','n','2','150px','0px','500px','y','n','n','n','n','600','n','n','y','imgur','y','note','y','usd','mtgox','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
-var butnames    = new Array('','show pre-written sentences','show popcorn button','threads to hide (e.g. \'bt:42;bt:1337;etc\')','additional CSS (online file or text)','display target domain after every link','display toggle chat button','display auto-refresh button','Show opacity bar','refresh rate of the chat in seconds','max height of the chatbox','space between right border and chatbox','space between top border and chatbox','display the chat','At the top of the page of DiscussBitcoin','At the top of the page','Above the original BitcoinTalk ad','At the bottom of the screen','Auto-refresh time in seconds (0 for never)','put the DiscussBitcoin index in BitcoinTalk','expand the DB layout','anonymous image upload','server for uploaded pics','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
+var params      = new Array('','showcsseditorbtn', 'textcss','showpwsentences','popcornicon','hiddenthreads','additionalcss','displaytargetdomains','displaytogglechat','displayautorefresh','showopacitybar','chatrefresh','chatcoordmaxheight','chatcoordright','chatcoordtop','displaychat','displaydbppad1','displaybtppad3','displaybtppad2','displaybtppad1','unreadrepliesautoupdaterate','dbinbt','db-large','anonupload','uploadpicserv','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
+var pdefaults   = new Array('','n','','n','n','','','y','n','y','n','2','150px','0px','500px','y','n','n','n','n','600','n','n','y','imgur','y','note','y','usd','btcavg','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
+var butnames    = new Array('','show CSS editor button','additional CSS (text)','show pre-written sentences','show popcorn button','threads to hide (e.g. \'bt:42;bt:1337;etc\')','additional CSS (online file)','display target domain after every link','display toggle chat button','display auto-refresh button','Show opacity bar','refresh rate of the chat in seconds','max height of the chatbox','space between right border and chatbox','space between top border and chatbox','display the chat','At the top of the page of DiscussBitcoin','At the top of the page','Above the original BitcoinTalk ad','At the bottom of the screen','Auto-refresh time in seconds (0 for never)','put the DiscussBitcoin index in BitcoinTalk','expand the DB layout','anonymous image upload','server for uploaded pics','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
 
 var listsOfChoices={};
 var YesNo={'y':'Yes','n':'No'};
 listsOfChoices['gotolastreadpost']=YesNo;
 listsOfChoices['displaycustomtags']=YesNo;
 listsOfChoices['displaynoteformat']={'note':'Note: (+1s)-(-1s)','pctnote':'PctNote: (+1s)/total','pctplus':'Pct+1: Note/total'};
-listsOfChoices['btcusdsource']={'mtgox':'MtGox','btcavg':'BitcoinAverage','btcavgnogox':'BitcoinAverage w/o MtGox','btce':'BTC-e','stamp':'Bitstamp','bitonic':'Bitonic'};
+listsOfChoices['btcusdsource']={'btcavg':'BitcoinAverage','btce':'BTC-e','stamp':'Bitstamp','bitonic':'Bitonic'};
 listsOfChoices['displaybtcusd']=YesNo;
 listsOfChoices['buttonsinbold']=YesNo;
 listsOfChoices['newlineBS']=YesNo;
@@ -206,12 +209,13 @@ listsOfChoices['displaytogglechat']=YesNo;
 listsOfChoices['displaytargetdomains']=YesNo;
 listsOfChoices['popcornicon']=YesNo;
 listsOfChoices['showpwsentences']=YesNo;
+listsOfChoices['showcsseditorbtn']=YesNo;
 
 var settingsDisplay={
    'Votes': ['password','newlineBS','displaynoteformat','symbolp1','symbolm1','colorp1','colorm1','colorbpm','buttonsinbold'],
    'Ticker':['displaybtcusd','btcusdsource','btcusdcurrency','btcusdrefresh'],
    'Chat':['chatrefresh','displaychat','chatcoordmaxheight','chatcoordtop','chatcoordright','showopacitybar'],
-   'Features': ['hiddenthreads','additionalcss','displaytargetdomains','gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv','anonupload','displaytogglechat','displayautorefresh','unreadrepliesautoupdaterate','popcornicon','showpwsentences'],
+   'Features': ['hiddenthreads','showcsseditorbtn','textcss','additionalcss','displaytargetdomains','gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv','anonupload','displaytogglechat','displayautorefresh','unreadrepliesautoupdaterate','popcornicon','showpwsentences'],
    'Ads': ['displaybtppad1','displaybtppad2','displaybtppad3','displaydbppad1'],
 };
 
@@ -255,7 +259,26 @@ var AdditionalCSS      = GMGV(params,pdefaults,'additionalcss');
 var hiddenThreads      = GMGV(params,pdefaults,'hiddenthreads');
 var showPopcornIcon    = GMGV(params,pdefaults,'popcornicon');
 var showPreWrittentSen = GMGV(params,pdefaults,'showpwsentences');
+var AddedTextCSS       = GMGV(params,pdefaults,'textcss');
+var ShowCSSEdBtn       = GMGV(params,pdefaults,'showcsseditorbtn');
 
+function apply_stringified_css(s){
+    if(!s)return;
+	d = JSON.parse(s);
+	r='';
+    for(i in d){
+	    sousr='';
+        e = d[i];
+        for(j in e){
+            if(e[j] != ''){
+	            sousr += j+':'+e[j]+' !important;';
+            }
+        }
+        if(sousr != ''){r+='\n'+i+'{'+sousr+'}';}
+    }
+    addCSS(r);
+}
+apply_stringified_css(AddedTextCSS);
 refreshChat=1000.0*Number(refreshChat);
 
 function formatChoice(v,param){
@@ -424,6 +447,115 @@ if(AdditionalCSS!=''){
    }
 }
 
+function ags(css) { 
+  var head, style;
+  head = document.getElementsByTagName('head')[0];
+  if (!head) { return; } 
+  style = document.createElement('style');
+  style.type = 'text/css'; 
+  style.innerHTML = css;
+  head.appendChild(style);
+}
+function makepropfct(prop){
+  return function(){
+    agso = prop.getAttribute('target')+'{'+prop.getAttribute('attr')+':'+prop.value+' !important;}';
+    ags(agso);
+  }
+}
+function makecsspropform(div, name, target, attr){
+    h = Crypto.SHA256(target+':'+attr);
+    defval = '';
+    if(AddedTextCSS){
+	    dic = JSON.parse(AddedTextCSS);
+        defval = (dic[target] && dic[target][attr])?dic[target][attr]:'';
+    }
+    wasempty = div.innerHTML=='';
+    span = div.appendChild(document.createElement("span"));
+    span.style.paddingLeft = '20px';
+    span.innerHTML = name+': <input class="cssprop" type=text target="'+target+'" attr="'+attr+'" id="cssedit_'+h+'" value="'+defval+'" /><br />';
+    elem = gebi('cssedit_'+h);
+    elem.onkeyup = makepropfct(elem);
+    return h;
+}
+function prependChild(parent, child){
+	parent.insertBefore(child,parent.firstChild);
+}
+function span_with_text(t){
+    e = document.createElement("span");
+    e.innerHTML = t;
+    return e;
+}
+function editedcss(){
+	r='';
+    for(i in editablecss){
+	    sousr='';
+        e = editablecss[i];
+        for(j in e[1]){
+            h = Crypto.SHA256(i+':'+e[1][j]);
+            elem = gebi('cssedit_'+h);
+            if(elem.value != ''){
+                sousr += e[1][j]+':'+elem.value+' !important;';
+            }
+        }
+        if(sousr){r+='\n'+i+'{'+sousr+'}';}
+    }
+    return r;
+}
+function cssform_to_string(){
+    r={};
+    for(i in editablecss){
+        sousr={};
+        e = editablecss[i];
+        for(j in e[1]){
+            h = Crypto.SHA256(i+':'+e[1][j]);
+            elem = gebi('cssedit_'+h);
+            if(elem.value != ''){
+                sousr[e[1][j]] = elem.value;
+            }
+        }
+        r[i] = sousr;
+    }
+    rr=JSON.stringify(r);
+    return rr;
+}
+function toggle_visibility(e){e.style.visibility=(e.style.visibility=='hidden'?'visible':'hidden');}
+function do_the_css_editor_stuff(){
+    if(ShowCSSEdBtn == 'n')return;
+    editcssdiv = body.appendChild(document.createElement("div"));
+    editcssdiv.innerHTML='';
+    editcssdiv.id='editcssdiv';
+    editcssdiv.style.visibility='hidden';
+    editcssdiv.style.backgroundColor='#ddddff';
+    editcssdiv.style.position='fixed';
+    editcssdiv.style.top='100px';
+    editcssdiv.style.left='900px';
+    editcssdiv.style.border='1px solid #bbbb99';
+    editcssdiv.style.padding='2px';
+    prependChild(gebi('bodyarea'), span_with_text('<input type=button value="Toggle CSS editor" id="showcsseditorbtn" />'));
+    gebi('showcsseditorbtn').onclick = function(){toggle_visibility(gebi('editcssdiv'));};
+    editablecss = {
+        'body':              ['body', ['background-color', 'color']],
+        '#variousheadlinks': ['header', ['background-color']],
+        '.windowbg':         ['even posts', ['background-color']],
+        '.windowbg2':        ['odd posts', ['background-color']],
+        '.quote':            ['quote div', ['background-color']]
+    };
+    for(i in editablecss){
+        if(editcssdiv.innerHTML!=''){editcssdiv.appendChild(document.createElement("span")).innerHTML='<br />';}
+        e = editablecss[i];
+        editcssdiv.appendChild(document.createElement("span")).innerHTML=e[0]+': <br />';
+        for(j in e[1]){
+            makecsspropform(editcssdiv, e[1][j], i, e[1][j]);
+        }
+    }
+    prependChild(editcssdiv, span_with_text('<b>CSS editor:<br /><br /></b>'));
+    savebtneditcss = editcssdiv.appendChild(document.createElement("input"));
+    savebtneditcss.id = 'saveeditcss';
+    savebtneditcss.type = 'button';
+    savebtneditcss.value = 'Save';
+    gebi('saveeditcss').onclick = function (){GM_setValue('textcss', cssform_to_string());}
+}
+
 function saveSetting(param,v){
    return function(){
        if(v==undefined){v=document.getElementById(param).value;}
@@ -527,7 +659,7 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
            current = GMGV(params,pdefaults,param);
            pwbreaker='';
            if(i==0){type=' type="password" ';current='*hidden*';pwbreaker='no';}
-           var cut_ht=(param=='hiddenthreads' && current.length>20);
+           var cut_ht=((param == 'hiddenthreads' || param == 'textcss') && current.length>20);
            if(cut_ht){current='*hidden*';}
            input='<input '+type+' id="'+param+'" />';
            
@@ -544,7 +676,7 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
            }
            showbutton='';
            if(i==0){showbutton='<td><input id="show_password" type=button value="Show" /></td>';}
-           if(cut_ht){showbutton='<td><input id="showhiddenthreads" type=button value="Show" /></td>';}
+           if(cut_ht){showbutton='<td><input id="show'+param+'" type=button value="Show" /></td>';}
            table+='<tr><td>'+cfl(butname)+' <a href="" onclick="document.getElementById(\''+param+'\').value=\''+def+'\';return false;">(default='+def+')</span></td><td>Current: <span id="'+pwbreaker+'current_'+param+'">'+formatChoice(current,param)+'</span></td><td>'+input+'</td><td><input type=button id="'+param+'b" value="Change" /><span id="'+param+'done"></span></td>'+showbutton+'</tr>';
            
        }
@@ -555,6 +687,8 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
 
    el=document.getElementById('show_password');
    if(el){el.addEventListener('click',function(){alert(params[0]+': '+GM_getValue(params[0], 'None'));}, false);}
+   el=document.getElementById('showtextcss');
+   if(el){el.addEventListener('click',function(){alert('CSS text'+': '+GM_getValue('textcss', 'None'));}, false);}
    el=document.getElementById('showhiddenthreads');
    if(el){el.addEventListener('click',function(){alert('Hidden threads'+': '+GM_getValue('hiddenthreads', 'None'));}, false);}
    for(i=0;i<params.length;i++){
@@ -636,56 +770,8 @@ if(website=='BT'){
        }
    }
 }
-if(website=='DB'){
-   var hellotext = document.getElementById('panel');
-   if(hellotext){
-       var reg = new RegExp('>([^>]*)</a></strong>. You last visited', "g");
-       var chaine = hellotext.innerHTML;
-       myPseudo = reg.exec(chaine)[1];
-       myPassword=GM_getValue("password_"+myPseudo, "");
-   }
-   gebi('header').innerHTML=gebi('header').innerHTML.replace(
-       /<div class="header_side"/g,
-       '<div id="dbppadv1" style="position:relative;top:20px;width:728px;float:left;"></div>$&'
-   );
 
-   if(gebi('dbppadv1') && DisplayDBPPAd_1=='y'){
-       var iframedb1 = document.createElement('iframe');
-       iframedb1.frameBorder = 0;
-       iframedb1.width = "728px";
-       iframedb1.height = "90px";
-       iframedb1.id = "iframedb1";
-       iframedb1.setAttribute('data-aa','8955');
-       iframedb1.src = 'https://ad.a-ads.com/8955?size=728x90';
-       iframedb1.onload = function(){
-   //        gebi('dbppadv1').style.display='table-cell';
-       };
-       gebi('dbppadv1').appendChild(iframedb1);
-   }
-
-}
 var iamjj=(myPseudo=='jackjack');
-
-if(website=='DB' && DBExtendLayout=='y'){
-   var pqb = document.getElementsByClassName('mainwrap');
-   for(i=0;i<pqb.length;i++){
-       var p=pqb[i];
-       p.style.width='90%';
-   }
-   var pqb = document.getElementsByClassName('header_main');
-   for(i=0;i<pqb.length;i++){
-       var p=pqb[i];
-       p.style.width='100%';
-   }
-   document.getElementById('navbar').style.background='#f0f0f0';
-   document.getElementById('navbar').style.width='100%';
-   var pqb = document.getElementsByClassName('footer_main');
-   for(i=0;i<pqb.length;i++){
-       var p=pqb[i];
-       p.style.background='none';
-   }
-}
-
 
 threadview=(body.innerHTML.indexOf('">With a <i>Quick-Reply</i> you can use bulletin board code and smileys as you would in a normal post, but much more conveniently.')>-1);
 var smileyspacer='&nbsp;&nbsp;';
@@ -726,19 +812,17 @@ function resetPassword(){
 }
 
 
-var infobox='<div id="refreshcountdown" style="position:absolute;"></div><div id="infobox" style="\
- z-index:15;\
- background-color:#ddddff;\
- border:1px solid #bbbbdd;\
- max-width:500px;\
- position:fixed;\
- top:2px;\
- right:2px;\
- padding:2px 2px 2px 2px;\
- "></div>';
-body.innerHTML+=infobox;
+refreshcountdown = body.appendChild(document.createElement("div"));
+refreshcountdown.id='refreshcountdown';
+refreshcountdown.style.cssText='position:absolute;';
+infobox = body.appendChild(document.createElement("div"));
+infobox.id='infobox';
+infobox.style.cssText='z-index:15;background-color:#ddddff;border:1px solid #bbbbdd;max-width:500px;position:fixed;top:2px;right:2px;padding:2px 2px 2px 2px;';
 if(displayBTCUSD=='y'){
- body.innerHTML+='<div id="pricediv" style="position:fixed;top:0px;left:0px;right:0px;width:200px;margin-right:auto;margin-left:auto;background-color:#E5E5F3;text-align:center;border:solid 1px #333399;font-weight:bold;padding:2px;">Contacting ticker...</div>';
+    pricediv = body.appendChild(document.createElement("div"));
+    pricediv.id='pricediv';
+    pricediv.style.cssText='position:fixed;top:0px;left:0px;right:0px;width:200px;margin-right:auto;margin-left:auto;background-color:#E5E5F3;text-align:center;border:solid 1px #333399;font-weight:bold;padding:2px;';
+    pricediv.innerHTML='Contacting ticker...';
 }
 
 function changePriceDiv(a){
@@ -767,9 +851,6 @@ eval("data="+r.responseText+';');
    if(s=='btcavg'){
        changePriceDiv('BTCaverage: '+symbol[0]+data[c]['averages']['last']+symbol[1]);
        document.getElementById('pricediv').style.width='180px';
-   }else if(s=='btcavgnogox'){
-       changePriceDiv('BTCaverage: '+symbol[0]+data[c]['last']+symbol[1]);
-       document.getElementById('pricediv').style.width='180px';
    }else if(s=='btce'){
        changePriceDiv('BTC-e: '+symbol[0]+data['ticker']['last']+symbol[1]);
        document.getElementById('pricediv').style.width='150px';
@@ -780,22 +861,14 @@ eval("data="+r.responseText+';');
        changePriceDiv('Bitonic: '+symbol[0]+data['euros_formatted']+symbol[1]);
        document.getElementById('pricediv').style.width='130px';
    }else{
-       if(data['result']=='error'){changePriceDiv('MtGox: Error');}
-       changePriceDiv('MtGox: '+data['return']['last_all']['display']);
-       document.getElementById('pricediv').style.width='130px';
+       changePriceDiv('BTCaverage: '+symbol[0]+data[c]['averages']['last']+symbol[1]);
+       document.getElementById('pricediv').style.width='180px';
    }
-   if(website=='DB'){
-     document.getElementById('pricediv').style.fontSize='80%';
-     document.getElementById('pricediv').style.color='black';
-   }
-
 }
 
 function priceSourceToURL(s, curr){
    if(s=='btcavg'){
        return 'http://api.bitcoinaverage.com/all';
-   }else if(s=='btcavgnogox'){
-       return 'http://api.bitcoinaverage.com/no-mtgox/ticker/all';
    }else if(s=='btce'){
        return 'https://btc-e.com/api/2/btc_'+curr.toLowerCase()+'/ticker';
    }else if(s=='stamp'){
@@ -803,7 +876,7 @@ function priceSourceToURL(s, curr){
    }else if(s=='bitonic'){
        return 'https://bitonic.nl/json/sell?part=offer&check=btc&btc=1';
    }else{
-       return 'https://data.mtgox.com/api/1/BTC'+curr+'/ticker';
+       return 'http://api.bitcoinaverage.com/all';
    }
 }
 
@@ -1080,23 +1153,7 @@ for(i=0;i<ldbuttons.length;i+=2){
 	listOfPostsInPage+=ldb.getAttribute('post')+'-';
 }
 
-var re = new RegExp('\n.*(<a.*Mark ALL messages as read<\/a>).*\n', "g");
-var rexec = re.exec(body.innerHTML);
-var markasread='';
-var decalageMAR='0px';
-if(rexec!=null){
-   decalageMAR='20px';
-   markasread='<span class="maintab_back" style="float:right;position:relative;bottom:'+decalageMAR+';">'+rexec[1]+'</span><br />';
-}
-body.innerHTML = body.innerHTML.replace(
- /<br.*\n\t<div class="tborder".*\n\t\t<div class="catbg"/g,
- '<span id="additionalforums" style="position:relative;bottom:'+decalageMAR+';"></span><span id="markasread"></span><br /><div class="tborder"><div class="catbg"'
-);
-if(gebi('additionalforums')){
-   body.innerHTML = body.innerHTML.replace(/<a.*Mark ALL messages as read<\/a>/g,'');
-   body.innerHTML = body.innerHTML.replace(/<img.*> New Posts\n.*No New Posts/g,'');
-   gebi('markasread').innerHTML=markasread;
-}
+do_the_css_editor_stuff();
 
 function votingURL(no,val,nom){
    var url=server+'/'+votePage+'?pseudo='+myPseudo+'&pass='+myPassword+'&cible='+no+'&nomcible='+nom+'&score='+val+'&uid='+myUID
@@ -1909,11 +1966,11 @@ mapCN(function(e){e.addEventListener('click',function(r){
        if(z!='' && tiv!=z){setTextInputValue(((tiv!='')?tiv+'\n':'')+z);}
    },false);},'addBackedupTI',0);
 
-
 var topdiv = body.appendChild(document.createElement("div"));
 topdiv.innerHTML='<a href="javascript:void(0);" id="topbutton">Top</a>';
 topdiv.style='position:fixed;bottom:0px;left:0px;border:1px solid #bbbb99;padding:2px;';
 topdiv.addEventListener('click',function(){document.body.scrollTop=document.documentElement.scrollTop=0;},false);
+
 /*
 globalalertdiv = body.appendChild(document.createElement("div"));
 globalalertdiv.innerHTML='<a href="javascript:void(0);" id="topbutton">Alert</a>';
@@ -1926,8 +1983,5 @@ if (typeof String.prototype.startsWith != 'function') {
    return this.slice(0, str.length) == str;
  };
 }
-
-
-
 
 
