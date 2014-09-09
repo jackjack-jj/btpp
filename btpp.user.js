@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.2.95
+// @version       0.2.96
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -16,7 +16,7 @@
 // @grant         GM_xmlhttpRequest 
 // ==/UserScript==
 
-var version='0.2.95';
+var version='0.2.96';
 var BTPP_server_signing_pubkey = "045F8433E35FF0FDA62F1F247857102BDCCB35CBE718E026F89B7B43F8ACAC6C51510C9D6A959FE161CE2BAE4130B6C615965DA9F3EE86483441E21D059ED999C0";
 var body = document.getElementsByTagName('body')[0];
 
@@ -180,9 +180,9 @@ function GMGV(p,d,m){
 if(GM_getValue('chatcoordtop',' ').slice(GM_getValue('chatcoordtop',' ').length-1)=='%'){GM_setValue('chatcoordtop','0px');}
 if(GM_getValue('chatcoordright',' ').slice(GM_getValue('chatcoordright',' ').length-1)=='%'){GM_setValue('chatcoordright','0px');}
 
-var params      = new Array('','addstodisplay','googlesearchform', 'showcsseditorbtn', 'textcss','showpwsentences','popcornicon','hiddenthreads','additionalcss','displaytargetdomains','displaytogglechat','displayautorefresh','showopacitybar','chatrefresh','chatcoordmaxheight','chatcoordright','chatcoordtop','displaychat','displaydbppad1','displaybtppad3','displaybtppad2','displaybtppad1','unreadrepliesautoupdaterate','dbinbt','db-large','anonupload','uploadpicserv','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
-var pdefaults   = new Array('','','n', 'n','','n','n','','','y','n','y','n','2','150px','0px','500px','y','n','n','n','n','600','n','n','y','imgur','y','note','y','usd','btcavg','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
-var butnames    = new Array('','Addresses to follow','use Google as search engine','show CSS editor button','additional CSS (text)','show pre-written sentences','show popcorn button','threads to hide (e.g. \'bt:42;bt:1337;etc\')','additional CSS (online file)','display target domain after every link','display toggle chat button','display auto-refresh button','Show opacity bar','refresh rate of the chat in seconds','max height of the chatbox','space between right border and chatbox','space between top border and chatbox','display the chat','At the top of the page of DiscussBitcoin','At the top of the page','Above the original BitcoinTalk ad','At the bottom of the screen','Auto-refresh time in seconds (0 for never)','put the DiscussBitcoin index in BitcoinTalk','expand the DB layout','anonymous image upload','server for uploaded pics','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
+var params      = new Array('','bookmarkedthreads','addstodisplay','googlesearchform', 'showcsseditorbtn', 'textcss','showpwsentences','popcornicon','hiddenthreads','additionalcss','displaytargetdomains','displaytogglechat','displayautorefresh','showopacitybar','chatrefresh','chatcoordmaxheight','chatcoordright','chatcoordtop','displaychat','displaydbppad1','displaybtppad3','displaybtppad2','displaybtppad1','unreadrepliesautoupdaterate','dbinbt','db-large','anonupload','uploadpicserv','gotolastreadpost','displaynoteformat','displaycustomtags','btcusdcurrency','btcusdsource','displaybtcusd','btcusdrefresh','buttonsinbold','newlineBS','formataddresses','formattx','presetpost','presetpm',"colorp1","colorm1","colorbpm","symbolp1","symbolm1");
+var pdefaults   = new Array('','[]','','n', 'n','','n','n','','','y','n','y','n','2','150px','0px','500px','y','n','n','n','n','600','n','n','y','imgur','y','note','y','usd','btcavg','y','60','n','n','n','n','','',"#bbbbbb","#bbbbbb","#dddddd","+","&minus;");
+var butnames    = new Array('','Bookmarked threads','Addresses to follow','use Google as search engine','show CSS editor button','additional CSS (text)','show pre-written sentences','show popcorn button','threads to hide (e.g. \'bt:42;bt:1337;etc\')','additional CSS (online file)','display target domain after every link','display toggle chat button','display auto-refresh button','Show opacity bar','refresh rate of the chat in seconds','max height of the chatbox','space between right border and chatbox','space between top border and chatbox','display the chat','At the top of the page of DiscussBitcoin','At the top of the page','Above the original BitcoinTalk ad','At the bottom of the screen','Auto-refresh time in seconds (0 for never)','put the DiscussBitcoin index in BitcoinTalk','expand the DB layout','anonymous image upload','server for uploaded pics','make thread titles link to the last read post','format of note display','display BT++ tags','currency for Bitcoin price','source for Bitcoin price','display Bitcoin price','Bitcoin price refresh in seconds','put [+-] in bold','newline before score','format addresses','format transactions','text automatically added in your posts','text automatically added in your PMs',"color of +1","color of -1","color of surrounding []","symbol of +1","symbol of -1");
 
 var listsOfChoices={};
 var YesNo={'y':'Yes','n':'No'};
@@ -216,7 +216,7 @@ var settingsDisplay={
    'Votes': ['password','newlineBS','displaynoteformat','symbolp1','symbolm1','colorp1','colorm1','colorbpm','buttonsinbold'],
    'Ticker':['displaybtcusd','btcusdsource','btcusdcurrency','btcusdrefresh','addstodisplay'],
    'Chat':['chatrefresh','displaychat','chatcoordmaxheight','chatcoordtop','chatcoordright','showopacitybar'],
-   'Features': ['googlesearchform', 'hiddenthreads','showcsseditorbtn','textcss','additionalcss','displaytargetdomains','gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv','anonupload','displaytogglechat','displayautorefresh','unreadrepliesautoupdaterate','popcornicon','showpwsentences'],
+   'Features': ['bookmarkedthreads','googlesearchform', 'hiddenthreads','showcsseditorbtn','textcss','additionalcss','displaytargetdomains','gotolastreadpost','displaycustomtags','formataddresses','formattx','presetpost','presetpm','uploadpicserv','anonupload','displaytogglechat','displayautorefresh','unreadrepliesautoupdaterate','popcornicon','showpwsentences'],
    'Ads': ['displaybtppad1','displaybtppad2','displaybtppad3','displaydbppad1'],
 };
 
@@ -264,6 +264,28 @@ var AddedTextCSS       = GMGV(params,pdefaults,'textcss');
 var ShowCSSEdBtn       = GMGV(params,pdefaults,'showcsseditorbtn');
 var GoogleSearchForm   = GMGV(params,pdefaults,'googlesearchform');
 var AddressesToFollow  = GMGV(params,pdefaults,'addstodisplay');
+var BookmarkedThreads  = GMGV(params,pdefaults,'bookmarkedthreads');
+
+function addBookmark(thread, post, title){
+    tmp=GMGV(params,pdefaults,'bookmarkedthreads');
+    if(tmp=='')tmp='[]';
+	lst=JSON.parse(tmp);
+    lst.push([lst.length, thread, post, title]);
+    GM_setValue('bookmarkedthreads', JSON.stringify(lst));
+}
+
+function deleteBookmark(thread, post, index){
+    tmp=GMGV(params,pdefaults,'bookmarkedthreads');
+    if(tmp=='')tmp='[]';
+	lst=JSON.parse(tmp);
+    if(lst.length<=index)return 0;
+    el=lst[index];
+    if(el[1]==thread && el[2]==post){
+	    lst.splice(index, 1);
+    }else{return 0;}
+    GM_setValue('bookmarkedthreads', JSON.stringify(lst));
+    return 1;
+}
 
 function apply_stringified_css(s){
     if(!s)return;
@@ -665,7 +687,7 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
            current = GMGV(params,pdefaults,param);
            pwbreaker='';
            if(i==0){type=' type="password" ';current='*hidden*';pwbreaker='no';}
-           var cut_ht=((param == 'hiddenthreads' || param == 'textcss' || param == 'addstodisplay') && current.length>20);
+           var cut_ht=((param == 'hiddenthreads' || param == 'textcss' || param == 'addstodisplay' || param == 'bookmarkedthreads') && current.length>20);
            if(cut_ht){current='*hidden*';}
            input='<input '+type+' id="'+param+'" />';
            
@@ -701,6 +723,8 @@ if(document.location.href.split('/btppconf.ph').length>1){ // btpp config page
    if(el){el.addEventListener('click',function(){alert('CSS text: '+GM_getValue('textcss', 'None'));}, false);}
    el=document.getElementById('showhiddenthreads');
    if(el){el.addEventListener('click',function(){alert('Hidden threads: '+GM_getValue('hiddenthreads', 'None'));}, false);}
+   el=document.getElementById('showbookmarkedthreads');
+   if(el){el.addEventListener('click',function(){alert('Bookmarked threads: '+GM_getValue('bookmarkedthreads', 'None'));}, false);}
    for(i=0;i<params.length;i++){
        param=params[i];
        butname=butnames[i];
@@ -1741,8 +1765,12 @@ function tstodate(ts){
    var sec = a.getSeconds();
 
    var time='';
-   if(year!=now.getFullYear() || a.getMonth()!=now.getMonth() || date!=now.getDate()){
-       time=date+' '+month+', ';
+   if(a.getMonth()!=now.getMonth() || date!=now.getDate()){
+       time+=date+' '+month;
+       if(year!=now.getFullYear()){
+           time+=' '+year;
+       }
+       time+=', ';
    }
 
    if(hour<10){hour='0'+hour;}
@@ -1909,14 +1937,57 @@ if(myPseudo!='' && (document.location.href.split('index.php?action=unreadreplie'
 
 var movechatbox=false;
 
-if(DisplayChat=='y' && document.location.href.split('bitcointalk.org/index.php?topic=').length>1){
+function callbackDeleteBM(th,po,idx){
+    return function(){
+        deleteBookmark(th,po,idx);
+    };
+}
+
+if (BookmarkedThreads!=''){
+	bookmarked_thread_span = document.createElement('div');
+    bookmarked_thread_span.id='bookmarkedthreaddiv';
+    bookmarked_thread_span.style.cssText='border:solid 1px #696969;padding:5px;';
+    bookmarked_thread_span.innerHTML='<span style="font-size:130%;font-weight:bold;">Bookmarks</span><br /><br />';
+    lst=JSON.parse(BookmarkedThreads);
+    for(i in lst){
+        l=lst[i];
+        if(l=='')continue;
+        postno=0;
+        threadno=l[1];
+        postno=l[2];
+        title=l[3];
+        url='https://bitcointalk.org/index.php?topic='+threadno+'.msg'+postno+'#msg'+postno;
+        content=(i>0?'<br />':'')+'<a href="'+url+'">'+title+'</a>&nbsp;&nbsp;';
+        crossspan=document.createElement('span');
+        crossspan.innerHTML='☓';
+        crossspan.style.cssText='font-weight:bold;color:red;cursor:pointer;';
+        crossspan.onclick=callbackDeleteBM(threadno, postno, i);
+        linkurl=document.createElement('span');
+        linkurl.innerHTML=content;
+        linkurl.appendChild(crossspan);
+        bookmarked_thread_span.appendChild(linkurl);
+	}
+	body.appendChild(bookmarked_thread_span);
+}
+
+if(document.location.href.split('bitcointalk.org/index.php?topic=').length>1){
    var posts=gebcn('subject');
    var threadno=document.location.href.split('bitcointalk.org/index.php?topic=')[1].split('.')[0];
+   var display=(DisplayChat=='y')?'display:span;':'display:none;';
    for(i=0;i<posts.length;i++){
        var p=posts[i];
        var postno=p.id.slice(8);
-       p.innerHTML+='&nbsp;&nbsp;<span class="quoteinbtppchatbutton" onclick="if(document.getElementById(\'chattext\')){document.getElementById(\'chattext\').value+=\' btpost:'+threadno+'#'+postno+'\';}" style="cursor:pointer;background-color:#d8d8ee;font-size:70%;padding:2px;border:solid 1px #aaaacc;border-radius:4px;">Quote in BT++ chat</span>';
+       p.innerHTML+='&nbsp;&nbsp;<span class="quoteinbtppchatbutton" onclick="if(document.getElementById(\'chattext\')){document.getElementById(\'chattext\').value+=\' btpost:'+threadno+'#'+postno+'\';}" style="'+display+'cursor:pointer;background-color:#d8d8ee;font-size:70%;padding:2px;border:solid 1px #aaaacc;border-radius:4px;">Quote in BT++ chat</span>'+
+       ' <span class="addbookmarkbutton" style="cursor:pointer;background-color:#d8d8ee;font-size:70%;padding:2px;border:solid 1px #aaaacc;border-radius:4px;">Add to bookmarks</span>';
    }
+    mapCN(function(r){r.onclick=function(){
+        var titre = r.parentNode.childNodes[1].textContent;
+        var url = r.parentNode.childNodes[1].href;
+		var b = url.match(/topic=([0-9]*)\.msg([0-9]*)/);
+        var thread = b[1];
+        var post = b[2];
+        addBookmark(thread, post, titre);
+    };},'addbookmarkbutton',0);
 }
 
 if(displayDomains=='y'){
