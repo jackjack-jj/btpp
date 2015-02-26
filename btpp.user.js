@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          BitcoinTalk++
-// @version       0.2.96
+// @version       0.2.97
 // @author        jackjack-jj
 // @description   Adds lot of features to bitcointalk.org, including a vote system
 // @namespace     https://github.com/jackjack-jj
@@ -16,7 +16,7 @@
 // @grant         GM_xmlhttpRequest 
 // ==/UserScript==
 
-var version='0.2.96';
+var version='0.2.97';
 var BTPP_server_signing_pubkey = "045F8433E35FF0FDA62F1F247857102BDCCB35CBE718E026F89B7B43F8ACAC6C51510C9D6A959FE161CE2BAE4130B6C615965DA9F3EE86483441E21D059ED999C0";
 var body = document.getElementsByTagName('body')[0];
 
@@ -595,6 +595,13 @@ function cfa(a){return '<span style="color:green;">'+a+'</span>';}
 var translators=[
 //    ['John','Chinese','1d4c5az42gr84fvre3qszd'],
 ];
+
+function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
+if(endsWith(document.location.href, 'wap2')){
+    document.location.href=document.location.href.substring(0,document.location.href.length-5);
+}
 if(document.location.href.split('/btppcontributors.ph').length>1){
    p=document.location.href.split('/btppcontributors.php?u=')[1];
    body.innerHTML='<title>BT++ Settings</title>'+BTCSS+BTPPtitle+'\
